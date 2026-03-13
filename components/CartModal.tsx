@@ -1,0 +1,655 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { CartItem } from '../types';
+import { DELIVERY_FEE, RESTAURANT_ADDRESS } from '../constants';
+import { TIME_SLOTS_CSV_URL } from '../config/googleSheet';
+import { ORDER_LOGGER_URL } from '../config/orderLogger';
+import XMarkIcon from './icons/XMarkIcon';
+import TrashIcon from './icons/TrashIcon';
+import QuantitySelector from './QuantitySelector';
+import LocationMarkerIcon from './icons/LocationMarkerIcon';
+import PickupIcon from './icons/PickupIcon';
+import DeliveryIcon from './icons/DeliveryIcon';
+import WhatsAppIcon from './icons/WhatsAppIcon';
+import ArrowRightIcon from './icons/ArrowRightIcon';
+import CheckCircleIcon from './icons/CheckCircleIcon';
+
+interface CartModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  cartItems: CartItem[];
+  onUpdateQuantity: (itemId: string, newQuantity: number) => void;
+  onRemoveItem: (itemId: string) => void;
+  onClearCart: () => void;
+}
+
+type DaySlotsMap = Record<string, string>;
+type TimeSlotsConfig = Record<string, DaySlotsMap>;
+type TimeSlot = { time: string; status: string; };
+
+
+// Lista di orari di fallback da usare se il Google Sheet non è raggiungibile.
+const FALLBACK_TIME_SLOTS: TimeSlot[] = [
+    { time: '19:00', status: 'available' },
+    { time: '19:30', status: 'available' },
+    { time: '20:00', status: 'available' },
+    { time: '20:30', status: 'available' },
+    { time: '21:00', status: 'available' },
+    { time: '21:30', status: 'available' },
+    { time: '22:00', status: 'available' },
+    { time: '22:30', status: 'available' },
+    { time: '23:00', status: 'available' },
+];
+
+
+const fetchAndParseTimeSlots = async (): Promise<TimeSlotsConfig> => {
+    if (!TIME_SLOTS_CSV_URL) {
+        console.error("URL del Google Sheet non configurato in config/googleSheet.ts");
+        return {};
+    }
+    try {
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const urlToFetch = `${TIME_SLOTS_CSV_URL}&_=${new Date().getTime()}`;
+        const response = await fetch(`${proxyUrl}${encodeURIComponent(urlToFetch)}`);
+        
+        if (!response.ok) throw new Error('Network response was not ok.');
+        
+        let csvText = await response.text();
+        
+        if (csvText.charCodeAt(0) === 0xFEFF) {
+            csvText = csvText.substring(1);
+        }
+        
+        const rows = csvText.split(/\r?\n/);
+        if (rows.length < 2) return {};
+
+        const headerRow = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+        const dayIndex = headerRow.indexOf('day');
+        const timeIndex = headerRow.indexOf('time');
+        const statusIndex = headerRow.indexOf('status');
+
+        if (dayIndex === -1 || timeIndex === -1 || statusIndex === -1) {
+            console.error("Intestazioni CSV non trovate. Assicurati che ci siano le colonne 'day', 'time', e 'status'.");
+            return {};
+        }
+
+        const dataRows = rows.slice(1);
+        
+        const config: TimeSlotsConfig = {
+            monday: {}, tuesday: {}, wednesday: {}, thursday: {}, 
+            friday: {}, saturday: {}, sunday: {}
+        };
+
+        dataRows.forEach(row => {
+            const trimmedRow = row.trim();
+            if (!trimmedRow) return;
+
+            const parts = trimmedRow.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+            const day = (parts[dayIndex] || '').toLowerCase();
+            const time = parts[timeIndex];
+            
+            const rawStatus = (parts[statusIndex] || '').toLowerCase();
+            const status = rawStatus.includes('available') ? 'available' : 'unavailable';
+
+            if (day && time && status && config[day]) {
+                config[day][time] = status;
+            }
+        });
+        
+        return config;
+    } catch (error) {
+        console.error("Errore nel recuperare o analizzare gli orari:", error);
+        return {};
+    }
+};
+
+
+const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) => {
+  const [step, setStep] = useState(1); // 1: Summary, 2: Details, 3: Success
+  const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
+  const [address, setAddress] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [timeSlot, setTimeSlot] = useState('asap');
+  const [isLocating, setIsLocating] = useState(false);
+  const [showWhatsAppConfirmation, setShowWhatsAppConfirmation] = useState(false);
+  
+  const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlot[]>([]);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(true);
+  const [nameError, setNameError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+  const [usingFallbackTimes, setUsingFallbackTimes] = useState(false);
+
+
+  useEffect(() => {
+    if (isOpen && step !== 3) {
+        const loadTimeSlots = async () => {
+            setIsLoadingTimes(true);
+            setUsingFallbackTimes(false);
+            let slotsToProcess: TimeSlot[] = [];
+
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout after 2 seconds')), 2000)
+            );
+
+            try {
+                const config = await Promise.race([
+                    fetchAndParseTimeSlots(),
+                    timeoutPromise,
+                ]);
+
+                const today = new Date();
+                const dayOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][today.getDay()];
+                const daySlots = config[dayOfWeek] || {};
+
+                if (Object.keys(daySlots).length === 0) {
+                    throw new Error("Nessun orario valido ricevuto dallo Sheet.");
+                }
+
+                const forbiddenTimes = ['23:30', '24:00'];
+                slotsToProcess = Object.entries(daySlots)
+                    .map(([time, status]) => ({ time, status }))
+                    .filter(slot => !forbiddenTimes.includes(slot.time))
+                    .sort((a, b) => a.time.localeCompare(b.time));
+
+            } catch (error) {
+                console.warn("Caricamento orari da Google Sheet fallito o in timeout. Utilizzo degli orari di fallback.", error);
+                slotsToProcess = FALLBACK_TIME_SLOTS;
+                setUsingFallbackTimes(true);
+            } finally {
+                const now = new Date();
+                const preparationBufferMinutes = 15;
+                const availabilityThreshold = new Date(now.getTime() + preparationBufferMinutes * 60 * 1000);
+
+                const updatedSlots = slotsToProcess.map(slot => {
+                    const [hours, minutes] = slot.time.split(':').map(Number);
+                    const slotTime = new Date();
+                    slotTime.setHours(hours, minutes, 0, 0);
+
+                    if (slotTime < availabilityThreshold) {
+                        return { ...slot, status: 'past' };
+                    }
+                    return slot;
+                });
+
+                setDayTimeSlots(updatedSlots);
+                setIsLoadingTimes(false);
+            }
+        };
+        loadTimeSlots();
+    }
+}, [isOpen, step]);
+
+  const baseTotalPrice = useMemo(() => {
+    return cartItems.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
+  }, [cartItems]);
+
+  const finalTotalPrice = useMemo(() => {
+    const totalWithDelivery = deliveryType === 'delivery' ? baseTotalPrice + DELIVERY_FEE : baseTotalPrice;
+    return Math.max(0, totalWithDelivery);
+  }, [baseTotalPrice, deliveryType]);
+
+
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      setIsLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+          setAddress(mapsLink);
+          setIsLocating(false);
+        },
+        (error) => {
+          console.error("Error getting location: ", error);
+          alert("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
+          setIsLocating(false);
+        }
+      );
+    } else {
+      alert("La geolocalizzazione non è supportata da questo browser.");
+    }
+  };
+
+  const logOrderToSheet = () => {
+    if (!ORDER_LOGGER_URL) {
+        console.warn("URL per il logging non configurato. Salto la registrazione su Google Sheet.");
+        return;
+    }
+
+    try {
+        const orderDetailsString = cartItems.map(item => {
+            let detail = `${item.quantity}x ${item.product.name}`;
+            if (item.variant === 'menu') detail += ` (Menù)`;
+
+            const customizations: string[] = [];
+            if (item.removedIngredients.length > 0) customizations.push(`Senza: ${item.removedIngredients.join(', ')}`);
+            if (item.addedExtras.length > 0) customizations.push(`Extra: ${item.addedExtras.map(e => e.name).join(', ')}`);
+            if (item.variant === 'menu' && item.selectedDrink) customizations.push(`Bibita: ${item.selectedDrink.name}`);
+            if (item.selectedFrySauces && item.selectedFrySauces.length > 0) customizations.push(`Salse: ${item.selectedFrySauces.join(', ')}`);
+            if (item.notes) customizations.push(`Nota: ${item.notes}`);
+
+            if (customizations.length > 0) {
+                detail += ` [${customizations.join('; ')}]`;
+            }
+            return detail;
+        }).join(' / ');
+
+        const payload = {
+            customerName: customerName.trim(),
+            phoneNumber: phoneNumber.trim(),
+            deliveryType: deliveryType === 'delivery' ? 'Consegna a Domicilio' : 'Ritiro in Sede',
+            address: deliveryType === 'delivery' ? address.trim() : '',
+            orderDetails: orderDetailsString,
+            totalPrice: finalTotalPrice.toFixed(2).replace('.', ','),
+        };
+        
+        fetch(ORDER_LOGGER_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            redirect: 'follow',
+        }).catch(error => {
+            console.warn("Invio a Google Sheet completato (eventuali errori di rete sono normali con 'no-cors'):", error);
+        });
+    } catch (error) {
+        console.error("Errore durante la preparazione dei dati per Google Sheet:", error);
+    }
+  };
+
+
+  const handleSendWhatsApp = () => {
+    logOrderToSheet();
+    
+    const whatsappNumber = "3908251728034";
+    let message = `🍔 *NUOVO ORDINE - PANE & CAFFÈ* ☕\n\n`;
+    message += `*Cliente:* ${customerName}\n`;
+    message += `*Telefono:* ${phoneNumber}\n`;
+    message += `*Modalità:* ${deliveryType === 'delivery' ? 'Consegna a Domicilio' : 'Ritiro in Sede'}\n`;
+    
+    const asapEmoji = usingFallbackTimes ? '🏃‍♂️' : '⚡';
+    const timeSlotText = timeSlot === 'asap' ? `${asapEmoji} Il prima possibile` : timeSlot;
+    message += `*Orario Richiesto:* ${timeSlotText}\n`;
+    
+    message += `_(attendo conferma orario via WhatsApp)_\n\n`;
+    
+    message += "📝 *RIEPILOGO ORDINE:*\n";
+    message += "-----------------------------------\n";
+
+    cartItems.forEach(item => {
+      message += `*${item.quantity}x* ${item.product.name}`;
+      if (item.variant === 'menu') message += ` *(Menù)*`;
+      message += ` - *€${(item.finalPrice * item.quantity).toFixed(2)}*\n`;
+      
+      if (item.removedIngredients.length > 0) {
+          message += `   - Senza: ${item.removedIngredients.join(', ')}\n`;
+      }
+      if (item.addedExtras.length > 0) {
+          const extrasString = item.addedExtras.map(e => `${e.name} (+€${e.price.toFixed(2)})`).join(', ');
+          message += `   - Extra: ${extrasString}\n`;
+      }
+      
+      if (item.variant === 'menu') {
+          message += `   - Bibita: ${item.selectedDrink?.name || 'N/D'}\n`;
+      }
+
+      if (item.selectedFrySauces && item.selectedFrySauces.length > 0) {
+        const sauceLabel = item.variant === 'menu' ? 'Salse Patatine' : 'Salse';
+        message += `   - ${sauceLabel}: ${item.selectedFrySauces.join(', ')}\n`;
+      }
+      
+      if (item.notes) message += `   - Nota: _${item.notes}_\n`;
+    });
+
+    message += "-----------------------------------\n";
+    message += `Subtotale: €${baseTotalPrice.toFixed(2)}\n`;
+
+    if (deliveryType === 'delivery') {
+        message += `Costo Consegna: €${DELIVERY_FEE.toFixed(2)}\n`;
+    }
+    message += `*TOTALE:* *€${finalTotalPrice.toFixed(2)}*\n\n`;
+    
+    if (deliveryType === 'delivery') {
+        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${address}\n\n`;
+    } else {
+        message += `🏠 *INDIRIZZO DI RITIRO:*\n${RESTAURANT_ADDRESS}\n\n`;
+    }
+
+    message += "Grazie!";
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
+
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = 'paneECaffeOrderCounter';
+      const storedData = localStorage.getItem(key);
+      let newCount = 1;
+
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        if (data.date === today) {
+          newCount = data.count + 1;
+        }
+      }
+      
+      localStorage.setItem(key, JSON.stringify({ date: today, count: newCount }));
+      
+      window.dispatchEvent(new CustomEvent('order-placed'));
+    } catch (error) {
+      console.error("Could not update order count in localStorage", error);
+    }
+
+    onClearCart();
+    setStep(3);
+    setShowWhatsAppConfirmation(false);
+
+    setTimeout(() => {
+        if(isOpen) onClose();
+    }, 4000);
+  };
+
+  const handleProceedToConfirmation = () => {
+    const isNameValid = customerName.trim() !== '';
+    const isPhoneValid = phoneNumber.trim() !== '';
+
+    setNameError(!isNameValid);
+    setPhoneError(!isPhoneValid);
+
+    if (!isNameValid || !isPhoneValid) {
+        return;
+    }
+    if (deliveryType === 'delivery' && !address.trim()) {
+      alert("Per favore, inserisci un indirizzo o rileva la tua posizione per la consegna.");
+      return;
+    }
+    setShowWhatsAppConfirmation(true);
+  };
+  
+  const handleFullClearCart = () => {
+    onClearCart();
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+        setTimeout(() => {
+            setDeliveryType('pickup');
+            setTimeSlot('asap');
+            setStep(1);
+            setNameError(false);
+            setPhoneError(false);
+            setPhoneNumber('');
+            setShowWhatsAppConfirmation(false);
+        }, 300);
+    }
+  }, [isOpen]);
+  
+  useEffect(() => {
+      if(cartItems.length === 0 && isOpen && step !== 3) {
+          setStep(1);
+      }
+  }, [cartItems, isOpen, step])
+
+  if (!isOpen) return null;
+
+  const renderSummaryStep = () => (
+    <>
+      <div className="p-4 flex-grow overflow-y-auto scrollbar-hide">
+          {cartItems.length === 0 ? (
+            <p className="text-gray-400 text-center py-8">Il carrello è vuoto.</p>
+          ) : (
+            <>
+              <div className="flex justify-end mb-2">
+                <button onClick={handleFullClearCart} className="text-sm text-red-500 hover:text-red-400">Svuota carrello</button>
+              </div>
+              <ul className="divide-y divide-white/10">
+                {cartItems.map(item => (
+                    <li key={item.id} className="py-4 flex items-start space-x-4">
+                      <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-md" />
+                      <div className="flex-grow">
+                        <p className="font-bold text-white">{item.product.name} {item.variant === 'menu' ? '(Menù)' : ''}</p>
+                        <div className="text-xs text-gray-400 space-y-1 mt-1">
+                            {item.variant === 'menu' && <p>Bibita: {item.selectedDrink?.name}</p>}
+                            {item.removedIngredients.length > 0 && <p>Senza: {item.removedIngredients.join(', ')}</p>}
+                            {item.addedExtras.length > 0 && <p>Extra: {item.addedExtras.map(e => e.name).join(', ')}</p>}
+                            {item.selectedFrySauces && item.selectedFrySauces.length > 0 && <p>Salse: {item.selectedFrySauces.join(', ')}</p>}
+                            {item.notes && <p>Nota: <em>{item.notes}</em></p>}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-1">
+                        <QuantitySelector 
+                          quantity={item.quantity} 
+                          onQuantityChange={(newQuantity) => onUpdateQuantity(item.id, newQuantity)} 
+                        />
+                        <span className="text-lg font-semibold text-brand-orange">€{(item.finalPrice * item.quantity).toFixed(2)}</span>
+                        <button onClick={() => onRemoveItem(item.id)} className="text-gray-500 hover:text-red-500" aria-label="Rimuovi articolo"><TrashIcon className="h-4 w-4"/></button>
+                      </div>
+                    </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        {cartItems.length > 0 && (
+            <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-sm">
+                 <div className="space-y-2 text-lg">
+                    <div className="flex justify-between items-center font-bold text-xl">
+                        <span>Totale</span>
+                        <span>€{baseTotalPrice.toFixed(2)}</span>
+                    </div>
+                 </div>
+                 <button
+                    onClick={() => setStep(2)}
+                    className="mt-4 w-full bg-brand-orange text-white font-bold py-3 px-4 rounded-md hover:bg-brand-orange/90 transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  <span>Prosegui (€{baseTotalPrice.toFixed(2)})</span>
+                  <ArrowRightIcon className="h-5 w-5" />
+                </button>
+            </div>
+        )}
+    </>
+  );
+
+  const renderDetailsStep = () => (
+    <>
+        <div className="p-4 flex-grow overflow-y-auto scrollbar-hide space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Modalità di Ritiro</label>
+                <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-black/30">
+                    <button onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
+                      <PickupIcon className="h-5 w-5"/> Ritiro in Sede
+                    </button>
+                    <button onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
+                      <DeliveryIcon className="h-5 w-5"/> Consegna (+€{DELIVERY_FEE.toFixed(2)})
+                    </button>
+                </div>
+              </div>
+              {deliveryType === 'pickup' && (
+                  <div className="text-center bg-black/30 p-3 rounded-md">
+                      <p className="text-sm font-semibold text-white">Indirizzo per il ritiro:</p>
+                      <p className="text-xs text-gray-300">{RESTAURANT_ADDRESS}</p>
+                  </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                      <label htmlFor="customerName" className="block text-sm font-medium text-gray-300 mb-1">Nome e Cognome</label>
+                      <input 
+                        id="customerName" 
+                        type="text" 
+                        value={customerName} 
+                        onChange={e => {
+                            setCustomerName(e.target.value);
+                            if (nameError) setNameError(false);
+                        }} 
+                        className={`w-full bg-brand-gray text-white border rounded-md p-2 outline-none transition-all ${nameError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-white/20 focus:ring-2 focus:ring-brand-orange'}`}
+                        placeholder="Mario Rossi" />
+                      {nameError && <p className="text-red-400 text-sm mt-1">Per favore, inserisci nome e cognome.</p>}
+                  </div>
+                  <div>
+                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-1">Numero di Telefono</label>
+                      <input 
+                        id="phoneNumber" 
+                        type="tel" 
+                        value={phoneNumber} 
+                        onChange={e => {
+                            setPhoneNumber(e.target.value);
+                            if (phoneError) setPhoneError(false);
+                        }} 
+                        className={`w-full bg-brand-gray text-white border rounded-md p-2 outline-none transition-all ${phoneError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-white/20 focus:ring-2 focus:ring-brand-orange'}`}
+                        placeholder="3331234567" />
+                      {phoneError && <p className="text-red-400 text-sm mt-1">Per favore, inserisci un numero.</p>}
+                  </div>
+                  <div className="sm:col-span-2">
+                      <label htmlFor="timeSlot" className="block text-sm font-medium text-gray-300 mb-1">Orario</label>
+                      <select id="timeSlot" value={timeSlot} onChange={e => setTimeSlot(e.target.value)} disabled={isLoadingTimes} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 focus:ring-2 focus:ring-brand-orange outline-none disabled:opacity-50">
+                          <option value="asap">{usingFallbackTimes ? '🏃‍♂️' : '⚡'} Il prima possibile</option>
+                          {isLoadingTimes ? (
+                              <option disabled>Caricamento orari...</option>
+                          ) : (
+                              dayTimeSlots.map(slot => {
+                                  const isUnavailable = slot.status !== 'available';
+                                  let label = slot.time;
+                                  if (slot.status === 'past') {
+                                    label += ' (Passato)';
+                                  } else if (isUnavailable) {
+                                    label += ' (Non disp.)';
+                                  }
+                                  return (
+                                    <option 
+                                        key={slot.time} 
+                                        value={slot.time} 
+                                        disabled={isUnavailable}
+                                        className={isUnavailable ? 'text-gray-500' : ''}
+                                    >
+                                        {label}
+                                    </option>
+                                  );
+                                })
+                          )}
+                          {!isLoadingTimes && dayTimeSlots.length === 0 && (
+                              <option disabled>Nessun orario prenotabile per oggi.</option>
+                          )}
+                      </select>
+                      <p className="text-xs text-gray-400 mt-1">Gli ordini chiudono alle 23:00.</p>
+                  </div>
+              </div>
+
+              {deliveryType === 'delivery' && (
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-300 mb-1">Indirizzo di consegna</label>
+                  <div className="flex gap-2">
+                    <input id="address" type="text" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Via, numero civico, città" />
+                    <button onClick={handleGetLocation} disabled={isLocating} className="p-2 bg-blue-600 rounded-md hover:bg-blue-500 disabled:bg-gray-500 flex items-center justify-center" aria-label="Rileva posizione GPS">
+                      {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className="h-5 w-5"/>}
+                    </button>
+                  </div>
+                </div>
+              )}
+        </div>
+        <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-sm">
+             <div className="space-y-1 mb-4 text-lg">
+                <div className="flex justify-between items-center text-gray-300">
+                    <span>Subtotale</span>
+                    <span>€{baseTotalPrice.toFixed(2)}</span>
+                </div>
+                {deliveryType === 'delivery' && (
+                <div className="flex justify-between items-center text-gray-300">
+                    <span>Consegna</span>
+                    <span>€{DELIVERY_FEE.toFixed(2)}</span>
+                </div>
+                )}
+                <div className="flex justify-between items-center font-bold text-xl border-t border-white/20 pt-2 mt-2">
+                    <span>Totale</span>
+                    <span>€{finalTotalPrice.toFixed(2)}</span>
+                </div>
+            </div>
+            <div className="space-y-2">
+                <button
+                onClick={handleProceedToConfirmation}
+                className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md hover:bg-green-600 transition-colors duration-300 flex items-center justify-center gap-2"
+                >
+                  <WhatsAppIcon className="h-6 w-6" />
+                  <span>Invia Ordine su WhatsApp</span>
+                </button>
+                <button onClick={() => setStep(1)} className="w-full text-center text-gray-300 text-sm py-2 hover:text-white">
+                    Torna al Riepilogo
+                </button>
+            </div>
+          </div>
+    </>
+  );
+
+  const renderSuccessStep = () => (
+    <div className="p-8 flex flex-col items-center justify-center text-center flex-grow animate-fade-in">
+        <CheckCircleIcon className="h-20 w-20 text-green-500" />
+        <h3 className="text-2xl font-bold text-green-400 mt-4">Ordine Inviato con Successo!</h3>
+        <p className="text-gray-300 mt-2 max-w-sm">
+            Il tuo ordine è stato inviato a Pane & Caffè. Riceverai una conferma e l'orario definitivo direttamente su WhatsApp.
+        </p>
+        <p className="text-gray-400 mt-4 text-sm">
+            Questa finestra si chiuderà tra poco...
+        </p>
+    </div>
+  );
+
+  const renderWhatsAppConfirmation = () => (
+    <div className="fixed inset-0 bg-black/80 z-[51] flex justify-center items-center p-4" onClick={() => setShowWhatsAppConfirmation(false)}>
+      <div 
+        className="bg-brand-dark border border-white/20 rounded-lg shadow-2xl w-full max-w-md p-6 text-center flex flex-col items-center space-y-4 animate-fade-in"
+        onClick={e => e.stopPropagation()}
+      >
+        <WhatsAppIcon className="h-16 w-16 text-green-500" />
+        <h3 className="text-2xl font-bold text-white">Quasi Fatto!</h3>
+        <p className="text-gray-300">
+          Stai per essere reindirizzato su WhatsApp. Per confermare l'ordine,{' '}
+          <strong className="text-white">devi solo premere "Invia"</strong> nel messaggio che abbiamo preparato per te.
+        </p>
+        <p className="text-sm text-yellow-400 bg-yellow-900/30 px-3 py-2 rounded-md">
+          ⚠️ Senza l'invio del messaggio, il tuo ordine non sarà ricevuto!
+        </p>
+        <div className="w-full pt-4 space-y-2">
+          <button 
+            onClick={handleSendWhatsApp} 
+            className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md hover:bg-green-600 transition-colors duration-300"
+          >
+            Vai a WhatsApp e Invia
+          </button>
+          <button 
+            onClick={() => setShowWhatsAppConfirmation(false)} 
+            className="w-full text-center text-gray-300 text-sm py-2 hover:text-white"
+          >
+            Torna al carrello
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
+      <div className="bg-brand-gray rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-white/10">
+          <h2 className="text-2xl font-bold text-white">
+            {step === 1 && 'Riepilogo Ordine'}
+            {step === 2 && 'Dettagli e Conferma'}
+            {step === 3 && 'Fatto!'}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10" aria-label="Chiudi carrello"><XMarkIcon className="h-6 w-6" /></button>
+        </div>
+        
+        {step === 1 && renderSummaryStep()}
+        {step === 2 && renderDetailsStep()}
+        {step === 3 && renderSuccessStep()}
+
+      </div>
+      {showWhatsAppConfirmation && renderWhatsAppConfirmation()}
+    </div>
+  );
+};
+
+export default CartModal;

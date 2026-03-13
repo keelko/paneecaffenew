@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="https://i.imgur.com/uwZSNQw.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Meta Tags -->
+    <title>Pane & Caffè Ariano Irpino | Ordina Online Hamburger e Panini</title>
+    <meta name="description" content="Ordina online i migliori hamburger, panini, e sfizi da Pane & Caffè ad Ariano Irpino. Scegli, personalizza e invia il tuo ordine su WhatsApp per ritiro o consegna a domicilio." />
+    <meta name="keywords" content="pane e caffè, ariano irpino, hamburger, panini, delivery, ordini online, food delivery, pub, take away" />
+    <link rel="canonical" href="https://www.panecaffe.info/ordini/" />
+
+    <!-- Open Graph / Facebook Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.panecaffe.info/ordini/" />
+    <meta property="og:title" content="Pane & Caffè Ariano Irpino | Ordina Online" />
+    <meta property="og:description" content="Ordina i migliori hamburger e panini direttamente da casa. Personalizza il tuo ordine e invialo su WhatsApp!" />
+    <meta property="og:image" content="https://i.imgur.com/uwZSNQw.png" />
+
+    <!-- Twitter Meta Tags -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.panecaffe.info/ordini/" />
+    <meta property="twitter:title" content="Pane & Caffè Ariano Irpino | Ordina Online" />
+    <meta property="twitter:description" content="Ordina i migliori hamburger e panini direttamente da casa. Personalizza il tuo ordine e invialo su WhatsApp!" />
+    <meta property="twitter:image" content="https://i.imgur.com/uwZSNQw.png" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-orange': '#ff5f33',
+              'brand-cream': '#FFF9F0',
+              'brand-dark': '#121212',
+              'brand-gray': '#1E1E1E',
+            },
+            animation: {
+                'hero-title-fade': 'hero-title-fade 12s ease-in-out forwards',
+                'hero-subtitle-fade': 'hero-subtitle-fade 12s ease-in-out forwards',
+                'hero-bar-animation': 'hero-bar-animation 12s ease-in-out forwards',
+                'pulse-underline': 'pulse-underline 10s ease-in-out infinite',
+                'cart-jiggle': 'jiggle 0.5s ease-in-out 1',
+                'heartbeat': 'heartbeat 4s ease-in-out infinite',
+            },
+            keyframes: {
+                'hero-title-fade': {
+                    '0%, 100%': { opacity: '0' },
+                    '5%, 95%': { opacity: '1' },
+                },
+                'hero-subtitle-fade': {
+                    '0%, 75%, 100%': { opacity: '0' },
+                    '5%, 70%': { opacity: '1' },
+                },
+                'hero-bar-animation': {
+                    '0%': { transform: 'scaleX(0)', opacity: '1' },
+                    '4%': { transform: 'scaleX(0)', opacity: '1' },
+                    '10%': { transform: 'scaleX(1)', opacity: '1' },
+                    '20%': { transform: 'scaleX(0.95)' },
+                    '30%': { transform: 'scaleX(1)' },
+                    '40%': { transform: 'scaleX(0.95)' },
+                    '50%': { transform: 'scaleX(1)' },
+                    '60%': { transform: 'scaleX(0.95)' },
+                    '70%': { transform: 'scaleX(1)' },
+                    '80%': { transform: 'scaleX(0.95)' },
+                    '90%': { transform: 'scaleX(1)', opacity: '1' },
+                    '100%': { transform: 'scaleX(1)', opacity: '0' },
+                },
+                'pulse-underline': {
+                    '0%, 78%': { transform: 'scaleX(0)' },
+                    '80%, 98%': { transform: 'scaleX(1)' },
+                    '100%': { transform: 'scaleX(0)' }
+                },
+                'jiggle': {
+                    '0%, 100%': { transform: 'rotate(-3deg) scale(1)' },
+                    '50%': { transform: 'rotate(3deg) scale(1.1)' }
+                },
+                'heartbeat': {
+                    '0%, 20%, 40%, 100%': { transform: 'scale(1)', opacity: '0.65' },
+                    '10%, 30%': { transform: 'scale(1.05)', opacity: '1' },
+                }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        .font-brand {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #FFF9F0;
+        }
+        /* Custom scrollbar for better aesthetics */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Animation for the hero image */
+        @keyframes ken-burns {
+            0% { transform: scale(1.1) translate(0, 0); }
+            100% { transform: scale(1.2) translate(-2%, 2%); }
+        }
+        .animate-ken-burns {
+            animation: ken-burns 20s ease-out forwards infinite alternate;
+        }
+
+        /* Subtle zoom for slideshow images */
+        @keyframes subtle-zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        /* Jiggle animation for icons */
+        @keyframes jiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .animate-jiggle {
+            animation: jiggle 0.5s ease-in-out infinite alternate;
+        }
+        
+        .animate-cart-jiggle-once {
+            animation: jiggle 0.5s ease-in-out;
+        }
+        @keyframes jiggle {
+            0%, 100% { transform: rotate(-5deg) scale(1); }
+            25% { transform: rotate(5deg) scale(1.2); }
+            50% { transform: rotate(-5deg) scale(1.2); }
+            75% { transform: rotate(5deg) scale(1.2); }
+        }
+
+        /* Slow pulse animation */
+        @keyframes pulse-slow {
+           0%, 100% { opacity: 1; transform: scale(1); }
+           50% { opacity: 0.95; transform: scale(1.02); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Glow animation for the monthly special section */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(255, 95, 51, 0.2), 0 0 5px rgba(255, 95, 51, 0.1);
+                border-color: rgba(255, 95, 51, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 25px rgba(255, 95, 51, 0.4), 0 0 10px rgba(255, 95, 51, 0.2);
+                border-color: rgba(255, 95, 51, 0.7);
+            }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Fade-in animation for gallery */
+        @keyframes fade-in {
+            from { opacity: 0.5; }
+            to { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-in-out;
+        }
+
+        /* Shine/light sweep effect for text */
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: light-sweep 6s ease-in-out infinite;
+        }
+
+        @keyframes light-sweep {
+            0% { left: -150%; }
+            30% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        /* Shine/light sweep effect that runs only once */
+        .shine-effect-once {
+            position: relative;
+            overflow: hidden;
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+        }
+        .shine-effect-once::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            transform: skewX(-25deg);
+            animation: light-sweep-single 3s ease-in-out 1.5s;
+        }
+        
+        @keyframes light-sweep-single {
+            from { left: -150%; }
+            to { left: 150%; }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "vite": "https://aistudiocdn.com/vite@^7.1.9",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.4"
+  }
+}
+</script>
+</head>
+<body class="bg-brand-dark text-brand-cream">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
