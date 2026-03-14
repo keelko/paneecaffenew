@@ -8,7 +8,7 @@ import LargeSauceIcon from './icons/LargeSauceIcon';
 interface ProductCardProps {
   product: Product;
   onAddToCart: (item: Omit<CartItem, 'id' | 'quantity'>, quantity: number) => void;
-  onViewDetails: (product: Product) => void;
+  onViewDetails: (product: Product, initialVariant?: CartItemVariant) => void;
   isSpecial?: boolean;
 }
 
@@ -112,11 +112,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
             <span className="absolute bottom-0 left-0 w-[1px] h-0 bg-brand-dark transition-all duration-200 ease-linear delay-[600ms] group-hover:h-full" />
         </>
       )}
-      <div className={`relative overflow-hidden ${isAvailable ? 'cursor-pointer' : ''}`} onClick={() => isAvailable && onViewDetails(product)}>
+      <div className={`relative overflow-hidden p-4 ${isAvailable ? 'cursor-pointer' : ''}`} onClick={() => isAvailable && onViewDetails(product)}>
           <img 
             src={product.image} 
             alt={product.name} 
-            className={`w-full h-48 ${product.imageFit === 'contain' ? 'object-contain' : 'object-cover'} ${isAvailable ? 'group-hover:scale-110' : ''} transition-transform duration-500 ease-in-out`} 
+            className={`w-full h-40 ${product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} ${isAvailable ? 'group-hover:scale-110' : ''} transition-transform duration-500 ease-in-out`} 
             style={{ objectPosition: product.imagePosition || 'center' }}
           />
           {isAvailable && (
@@ -130,89 +130,134 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
         <p className={`mt-1 text-sm flex-grow ${descriptionClasses}`} dangerouslySetInnerHTML={{ __html: product.description }}></p>
         
         <div className="mt-auto pt-4">
-            <div className="mb-4">
-                <div className="flex justify-between items-center">
-                    {product.variants && product.variants.length > 0 ? (
-                        <div className="text-brand-orange text-2xl font-semibold flex items-baseline gap-x-4">
-                            {product.variants.map((v) => (
-                                <div key={v.name}>
-                                    <span>€{v.price.toFixed(2)}</span>
-                                    <span className={`text-sm ml-1 font-normal capitalize ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>{v.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-brand-orange text-2xl font-semibold">
-                            €{product.price.toFixed(2)}
-                            {hasMenuOption && (
-                                 <span className={`text-base ml-2 ${menuPriceClasses}`}>/ Menù €{product.menuPrice!.toFixed(2)}</span>
-                            )}
-                        </p>
-                    )}
-                </div>
-            </div>
-            
-            {showTwoButtons ? (
-                 <div className="flex items-stretch gap-2">
-                    <button
-                        onClick={isAvailable ? handleQuickAddDefault : undefined}
-                        disabled={!!isAdded || !isAvailable}
-                        className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-                        aria-label="Aggiungi rapidamente al carrello"
-                    >
-                        {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
-                    </button>
-                    <button
-                        onClick={() => isAvailable && onViewDetails(product)}
-                        disabled={!isAvailable}
-                        className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                        Personalizza
-                    </button>
-                </div>
-            ) : (product.variants && product.variants.length > 0) ? (
-                 <div className="flex items-stretch gap-2">
-                    {product.variants.map(variant => {
-                        const isSmall = variant.name === 'Small';
-                        const isVariantAdded = isAdded === variant.name;
-                        const sizeTextColor = isSmall ? 'text-gray-700' : 'text-black';
+            {hasMenuOption ? (
+                <div className="flex flex-col gap-2 w-full">
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                if (!isAvailable) return;
+                                if (isCustomizable) {
+                                    onViewDetails(product, 'panino');
+                                } else {
+                                    handleQuickAddDefault();
+                                }
+                            }}
+                            disabled={!!isAdded || !isAvailable}
+                            className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            <span className={`text-sm font-semibold ${isSpecial ? 'text-brand-dark' : 'text-white'}`}>
+                                {isAdded ? 'Aggiunto!' : 'Solo Panino'}
+                            </span>
+                            <span className="text-brand-orange font-bold text-lg">€{product.price.toFixed(2)}</span>
+                        </button>
 
-                        return (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'menu'); }}
+                            disabled={!isAvailable}
+                            className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20'} disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden`}
+                        >
+                            <span className={`text-sm font-semibold ${isSpecial ? 'text-brand-dark' : 'text-white'}`}>Menù</span>
+                            <span className="text-brand-orange font-bold text-lg">€{product.menuPrice!.toFixed(2)}</span>
+                            <span className={`text-[10px] leading-tight text-center mt-1 px-1 ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>+ patatine e bibita</span>
+                        </button>
+                        
+                        {!isCustomizable && (
                             <button
-                                key={variant.name}
-                                onClick={() => isAvailable && handleQuickAddVariant(variant)}
-                                disabled={isVariantAdded || !isAvailable}
-                                className={`flex-grow font-bold py-2 px-3 rounded-md transition-colors duration-300 text-sm flex items-center justify-center gap-2 ${isVariantAdded ? 'bg-green-600 text-white' : variantBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'panino'); }}
+                                disabled={!isAvailable}
+                                className={`w-12 rounded-md transition-all duration-300 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed text-xs`}
+                                aria-label="Aggiungi nota"
                             >
-                                {isVariantAdded ? (
-                                    'Aggiunto!'
-                                ) : (
-                                    <>
-                                        {isSmall ? <SmallSauceIcon className={`h-5 w-5 ${sizeTextColor}`} /> : <LargeSauceIcon className={`h-5 w-5 ${sizeTextColor}`} />}
-                                        <span>
-                                            <span className={`${sizeTextColor} font-extrabold`}>{variant.name}</span> Aggiungi
-                                        </span>
-                                    </>
-                                )}
+                                Nota
                             </button>
-                        );
-                    })}
+                        )}
+                    </div>
                 </div>
             ) : (
-                <button
-                    onClick={() => {
-                        if (!isAvailable) return;
-                        if (requiresModal || isCustomizable || hasMenuOption) {
-                            onViewDetails(product);
-                        } else {
-                            handleQuickAddDefault();
-                        }
-                    }}
-                    disabled={(!!isAdded && !isCustomizable && !hasMenuOption) || !isAvailable}
-                    className={`w-full font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable || hasMenuOption ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
-                >
-                    {isCustomizable || hasMenuOption ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}
-                </button>
+                <>
+                    <div className="mb-4">
+                        <div className="flex justify-between items-center">
+                            {product.variants && product.variants.length > 0 ? (
+                                <div className="text-brand-orange text-2xl font-semibold flex items-baseline gap-x-4">
+                                    {product.variants.map((v) => (
+                                        <div key={v.name}>
+                                            <span>€{v.price.toFixed(2)}</span>
+                                            <span className={`text-sm ml-1 font-normal capitalize ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>{v.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-brand-orange text-2xl font-semibold">
+                                    €{product.price.toFixed(2)}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {showTwoButtons ? (
+                        <div className="flex items-stretch gap-2">
+                            <button
+                                onClick={isAvailable ? handleQuickAddDefault : undefined}
+                                disabled={!!isAdded || !isAvailable}
+                                className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                aria-label="Aggiungi rapidamente al carrello"
+                            >
+                                {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
+                            </button>
+                            <button
+                                onClick={() => isAvailable && onViewDetails(product)}
+                                disabled={!isAvailable}
+                                className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                Personalizza
+                            </button>
+                        </div>
+                    ) : (product.variants && product.variants.length > 0) ? (
+                        <div className="flex items-stretch gap-2">
+                            {product.variants.map(variant => {
+                                const isSmall = variant.name === 'Small';
+                                const isVariantAdded = isAdded === variant.name;
+                                const sizeTextColor = isSmall ? 'text-gray-700' : 'text-black';
+
+                                return (
+                                    <button
+                                        key={variant.name}
+                                        onClick={() => isAvailable && handleQuickAddVariant(variant)}
+                                        disabled={isVariantAdded || !isAvailable}
+                                        className={`flex-grow font-bold py-2 px-3 rounded-md transition-colors duration-300 text-sm flex items-center justify-center gap-2 ${isVariantAdded ? 'bg-green-600 text-white' : variantBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    >
+                                        {isVariantAdded ? (
+                                            'Aggiunto!'
+                                        ) : (
+                                            <>
+                                                {isSmall ? <SmallSauceIcon className={`h-5 w-5 ${sizeTextColor}`} /> : <LargeSauceIcon className={`h-5 w-5 ${sizeTextColor}`} />}
+                                                <span>
+                                                    <span className={`${sizeTextColor} font-extrabold`}>{variant.name}</span> Aggiungi
+                                                </span>
+                                            </>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => {
+                                if (!isAvailable) return;
+                                if (requiresModal || isCustomizable) {
+                                    onViewDetails(product);
+                                } else {
+                                    handleQuickAddDefault();
+                                }
+                            }}
+                            disabled={(!!isAdded && !isCustomizable) || !isAvailable}
+                            className={`w-full font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
+                        >
+                            {isCustomizable ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}
+                        </button>
+                    )}
+                </>
             )}
         </div>
       </div>

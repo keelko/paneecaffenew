@@ -98,6 +98,7 @@ const App: React.FC = () => {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<CartItemVariant>('panino');
   const [activeCategory, setActiveCategory] = useState<ProductCategory>('panini-del-mese');
   const [isCartAnimating, setIsCartAnimating] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -278,8 +279,9 @@ const App: React.FC = () => {
     setCartItems([]);
   }, []);
 
-  const handleViewDetails = useCallback((product: Product) => {
+  const handleViewDetails = useCallback((product: Product, initialVariant: CartItemVariant = 'panino') => {
     setSelectedProduct(product);
+    setSelectedVariant(initialVariant);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -415,6 +417,7 @@ const App: React.FC = () => {
             product={selectedProduct}
             onClose={handleCloseModal}
             onAddToCart={handleAddToCart}
+            initialVariant={selectedVariant}
         />
       )}
       {isCartOpen && (

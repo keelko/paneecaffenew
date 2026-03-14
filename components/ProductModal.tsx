@@ -18,11 +18,12 @@ interface ProductModalProps {
   product: Product;
   onClose: () => void;
   onAddToCart: (item: Omit<CartItem, 'id' | 'quantity'>, quantity: number) => void;
+  initialVariant?: CartItemVariant;
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCart }) => {
+const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCart, initialVariant = 'panino' }) => {
   const [quantity, setQuantity] = useState(1);
-  const [variant, setVariant] = useState<CartItemVariant>('panino');
+  const [variant, setVariant] = useState<CartItemVariant>(initialVariant);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
   const [addedExtras, setAddedExtras] = useState<SelectedExtra[]>([]);
   const [selectedDrinkId, setSelectedDrinkId] = useState<number | null>(null);
@@ -116,6 +117,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     extras = extras.filter(extra => {
       const extraLower = extra.name.toLowerCase();
       if (['ketchup', 'maionese', 'barbecue'].includes(extraLower)) {
+        if (extraLower === 'barbecue') {
+          return !productIngredientsLower.some(ing => ing.includes('barbecue') || ing.includes('bbq'));
+        }
         return !productIngredientsLower.some(ing => ing.includes(extraLower));
       }
       return true;
@@ -152,7 +156,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     );
   };
 
-  const canAddFrySauces = product.category === 'chips';
+  const canAddFrySauces = false;
 
   const handleAddToCartClick = () => {
     if (((variant === 'menu' && hasMenuOption) || isKidsMenu) && !selectedDrinkId) {
@@ -182,7 +186,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     }, 1000);
   };
 
-  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'chips'].includes(product.category)) && product.id !== 24 && product.id !== 16;
+  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'kids-junior', 'box', 'chips'].includes(product.category)) && product.id !== 24 && product.id !== 16;
   const showFrySauceSelector = canAddFrySauces;
   const showDrinkSelector = (variant === 'menu' && hasMenuOption) || isKidsMenu;
 
@@ -208,12 +212,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
           className="bg-brand-gray rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="relative">
+          <div className="relative bg-brand-gray/50 p-4 rounded-t-lg">
             <button onClick={() => setIsImageZoomed(true)} className="w-full block" aria-label="Visualizza immagine ingrandita">
               <img 
                 src={gallery[currentImageIndex]} 
                 alt={`${product.name} - ${currentImageIndex + 1}/${gallery.length}`} 
-                className={`w-full h-52 ${product.imageFit === 'contain' ? 'object-contain' : 'object-cover'} object-center rounded-t-lg cursor-pointer transition-opacity duration-300`} 
+                className={`w-full h-48 ${product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} object-center cursor-pointer transition-opacity duration-300`} 
                 key={gallery[currentImageIndex]}
               />
             </button>

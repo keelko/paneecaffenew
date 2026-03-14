@@ -410,7 +410,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               <ul className="divide-y divide-white/10">
                 {cartItems.map(item => (
                     <li key={item.id} className="py-4 flex items-start space-x-4">
-                      <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover rounded-md" />
+                      <img src={item.product.image} alt={item.product.name} className={`w-16 h-16 ${item.product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-md bg-white/5 p-1`} />
                       <div className="flex-grow">
                         <p className="font-bold text-white">{item.product.name} {item.variant === 'menu' ? '(Menù)' : ''}</p>
                         <div className="text-xs text-gray-400 space-y-1 mt-1">
