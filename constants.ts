@@ -20,6 +20,12 @@ export const EXTRAS_SAUCES: Extra[] = [
     { name: 'Barbecue', price: 0 },
 ];
 
+export const EXTRAS_CHIPS: Extra[] = [
+    { name: 'Cheddar', price: 1 },
+    { name: 'Bacon', price: 1 },
+    { name: 'Pulled Pork', price: 2 },
+];
+
 export const FRY_SAUCES: Extra[] = [
     { name: 'Ketchup', price: 0 },
     { name: 'Maionese', price: 0 },
@@ -54,14 +60,15 @@ export const PRODUCTS: Product[] = [
   {
     id: 103, name: "Hard Pork", price: 12, menuPrice: 17, category: 'panini-del-mese',
     description: "Bun artigianale, hamburger di maiale, patata smashata, provola, funghi cardoncelli alla piastra, crema di funghi, maionese.",
-    image: "https://i.imgur.com/fHyZ3eo.png",
+    image: "https://i.imgur.com/5Py1KdN.png",
     ingredients: ["Hamburger di maiale", "Patata smashata", "Provola", "Funghi cardoncelli", "Crema di funghi", "Maionese"],
   },
   {
     id: 104, name: "MLS", price: 15, menuPrice: 20, category: 'panini-del-mese',
-    description: "Bun artigianale, ragù napoletano, provola, cannellone ripieno alla bolognese e fritto. (Solo sabato e domenica)",
+    description: "Bun artigianale, ragù napoletano, provola, cannellone ripieno alla bolognese e fritto. <strong>(Solo sabato e domenica)</strong>",
     image: "https://i.imgur.com/synmOB8.png",
     ingredients: ["Ragù napoletano", "Provola", "Cannellone fritto"],
+    availableDays: [0, 6],
   },
 
   // Burgers & Smash
@@ -70,7 +77,6 @@ export const PRODUCTS: Product[] = [
     description: "Bun artigianale, hamburger di manzo, provola, bacon, insalata, pomodoro.",
     image: "https://i.imgur.com/NTNB4nA.png",
     ingredients: ["Hamburger di Manzo", "Provola", "Bacon", "Insalata", "Pomodoro"],
-    galleryImages: ["https://i.imgur.com/EiYXakH.png", "https://i.imgur.com/E9KWa9F.png"],
   },
   {
     id: 2, name: "Cheeseburger", price: 8, menuPrice: 13, category: 'hamburger',
@@ -87,16 +93,14 @@ export const PRODUCTS: Product[] = [
   {
     id: 3, name: "Signore degli Anelli", price: 8, menuPrice: 13, category: 'hamburger',
     description: "Bun artigianale, hamburger di manzo, provola, bacon, anelli di cipolla, maionese, salsa BBQ.",
-    image: "https://i.imgur.com/9JNdtMs.png",
+    image: "https://i.imgur.com/Ln0KyPk.png",
     ingredients: ["Hamburger di Manzo", "Provola", "Bacon", "Anelli di Cipolla", "Maionese", "Salsa BBQ"],
-    galleryImages: ["https://i.imgur.com/aAFQ3CQ.png", "https://i.imgur.com/zzNIT3K.png"],
   },
   {
     id: 5, name: "Smash American", price: 10, menuPrice: 15, category: 'hamburger',
     description: "Potato bun, doppio smashburger da 90g, cheddar, bacon, salsa Cane’s, cetriolini.",
     image: "https://i.imgur.com/XSdus29.png",
     ingredients: ["Doppio Smashburger 90g", "Cheddar", "Bacon", "Salsa Cane's", "Cetriolini"],
-    galleryImages: ["https://i.imgur.com/Jo2wUZC.png", "https://i.imgur.com/WffE6mZ.png"],
   },
   {
     id: 100, name: "St. Jhon", price: 13, menuPrice: 18, category: 'hamburger',
@@ -155,14 +159,11 @@ export const PRODUCTS: Product[] = [
     id: 17, name: "Patate Bacon e Cheddar", price: 6, category: 'chips',
     description: "Patatine fritte con bacon croccante e cheddar fuso. Includono salse in bustina (Ketchup, Maionese, BBQ).",
     image: "https://i.imgur.com/yJfSjf8.png",
-    galleryImages: ["https://i.imgur.com/2bxm5Ax.png"],
-    imagePosition: 'center 85%',
   },
   {
     id: 18, name: "Patate Pulled Pork e Cheddar", price: 8, category: 'chips',
     description: "Patatine fritte con pulled pork, cheddar fuso e salsa bbq. Includono salse in bustina.",
     image: "https://i.imgur.com/e6SUn5a.png",
-    galleryImages: ["https://i.imgur.com/5j6sdlV.png", "https://i.imgur.com/OB53IG4.jpeg"],
   },
 
   // Starter
@@ -170,15 +171,11 @@ export const PRODUCTS: Product[] = [
     id: 19, name: "Alette di Pollo Fritte", price: 5, category: 'starter',
     description: "6 Pezzi di alette di pollo croccanti e saporite.",
     image: "https://i.imgur.com/pHRdByL.png",
-    galleryImages: ["https://i.imgur.com/T205g8u.png"],
-    imagePosition: 'center 85%',
   },
   {
     id: 20, name: "Nuggets di Pollo", price: 5, category: 'starter',
     description: "6 Pezzi di bocconcini di pollo panati e fritti.",
     image: "https://i.imgur.com/iUulL2J.png",
-    galleryImages: ["https://i.imgur.com/ofQ78Us.png"],
-    imagePosition: 'center 85%',
   },
   {
     id: 21, name: "Anelli di Cipolla e Salsa Crispy", price: 5, category: 'starter',

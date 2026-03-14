@@ -1,6 +1,6 @@
 import React, { useState, useMemo, Fragment, useEffect, useRef } from 'react';
 import { Product, CartItem, CartItemVariant, Extra, SelectedExtra } from '../types';
-import { REMOVABLE_INGREDIENTS, EXTRAS_BURGER, EXTRAS_SAUCES, DRINKS, FRY_SAUCES, KIDS_DRINKS } from '../constants';
+import { REMOVABLE_INGREDIENTS, EXTRAS_BURGER, EXTRAS_SAUCES, EXTRAS_CHIPS, DRINKS, FRY_SAUCES, KIDS_DRINKS } from '../constants';
 import XMarkIcon from './icons/XMarkIcon';
 import QuantitySelector from './QuantitySelector';
 import BurgerIcon from './icons/BurgerIcon';
@@ -83,7 +83,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
   }, [product.ingredients]);
 
   const availableExtras = useMemo(() => {
-    let extras: Extra[] = [...EXTRAS_BURGER, ...EXTRAS_SAUCES];
+    let extras: Extra[] = [];
+    
+    if (product.category === 'chips') {
+      extras = [...EXTRAS_CHIPS];
+    } else {
+      extras = [...EXTRAS_BURGER, ...EXTRAS_SAUCES];
+    }
 
     if (product.category === 'box') {
       const forbiddenExtras = ['Bacon', 'Doppio Cheddar', 'Cetriolini', 'Doppio Hamburger', 'Cipolla Caramellata'];
@@ -168,7 +174,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     }, 1000);
   };
 
-  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box'].includes(product.category)) && product.id !== 24;
+  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'chips'].includes(product.category)) && product.id !== 24;
   const showFrySauceSelector = canAddFrySauces;
   const showDrinkSelector = (variant === 'menu' && hasMenuOption) || isKidsMenu;
 
@@ -244,7 +250,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                     <p className="text-sm text-brand-orange animate-fade-in">Incluso patatine fritte (con salse omaggio) + bibita a scelta</p>
                 )}
             </div>
-            <p className="text-gray-300">{product.description}</p>
+            <p className="text-gray-300" dangerouslySetInnerHTML={{ __html: product.description }}></p>
 
             {hasMenuOption && (
               <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-black/30">
@@ -259,7 +265,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
 
             {canBeCustomized && (
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-white -mb-2">Personalizza Panino</h3>
+                <h3 className="text-xl font-semibold text-white -mb-2">
+                  {product.category === 'chips' ? 'Personalizza Patatine' : 'Personalizza Panino'}
+                </h3>
                 <details className="rounded-md border border-white/20 overflow-hidden" open>
                       <summary className="p-4 bg-black/20 list-none cursor-pointer flex justify-between items-center group hover:bg-black/40">
                           <h3 className="text-lg font-semibold text-green-300 flex items-center gap-2"><SparklesIcon className="h-5 w-5"/>Aggiungi Extra</h3>

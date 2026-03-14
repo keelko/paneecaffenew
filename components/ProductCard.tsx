@@ -16,8 +16,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
   const [isAdded, setIsAdded] = useState<string | boolean>(false);
   const hasMenuOption = product.menuPrice !== undefined;
   // Chicken Box (id 24) is not customizable
-  const isCustomizable = (['hamburger', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'american-sandwich'].includes(product.category)) && product.id !== 24;
+  const isCustomizable = (['hamburger', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'american-sandwich', 'chips'].includes(product.category)) && product.id !== 24;
   const isSimple = !!product.isDrink;
+
+  const currentDay = new Date().getDay();
+  
+  const isAvailable = product.availableDays ? product.availableDays.includes(currentDay) : true;
+  const unavailableMessage = "Solo sabato e domenica";
 
   const handleQuickAddDefault = () => {
     onAddToCart({
@@ -47,19 +52,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
 
   if (isSimple) {
     return (
-        <div className="bg-brand-gray rounded-lg p-4 shadow-lg flex justify-between items-center h-full">
+        <div 
+          className={`bg-brand-gray rounded-lg p-4 shadow-lg flex justify-between items-center h-full ${!isAvailable ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+          title={!isAvailable ? unavailableMessage : undefined}
+        >
             <div className="pr-4">
                 <h3 className="text-lg font-bold text-white">{product.name}</h3>
-                <p className="text-gray-400 text-sm">{product.description}</p>
+                <p className="text-gray-400 text-sm" dangerouslySetInnerHTML={{ __html: product.description }}></p>
             </div>
             <div className="text-right flex-shrink-0">
                 <p className="text-brand-orange text-xl font-semibold mb-2">
                     €{product.price.toFixed(2)}
                 </p>
                 <button
-                    onClick={handleQuickAddDefault}
-                    disabled={!!isAdded}
-                    className="bg-brand-orange text-white font-bold py-1 px-3 rounded-md hover:bg-brand-orange/90 transition-colors duration-300 text-sm disabled:bg-green-600"
+                    onClick={isAvailable ? handleQuickAddDefault : undefined}
+                    disabled={!!isAdded || !isAvailable}
+                    className="bg-brand-orange text-white font-bold py-1 px-3 rounded-md hover:bg-brand-orange/90 transition-colors duration-300 text-sm disabled:bg-gray-500 disabled:cursor-not-allowed"
                 >
                     {isAdded ? 'Aggiunto!' : 'Aggiungi'}
                 </button>
@@ -88,7 +96,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
     : "bg-gray-200 hover:bg-gray-300 text-brand-dark";
 
   return (
-    <div className={`relative rounded-lg overflow-hidden shadow-lg group flex flex-col ${cardClasses}`}>
+    <div 
+      className={`relative rounded-lg overflow-hidden shadow-lg group flex flex-col ${cardClasses} ${!isAvailable ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+      title={!isAvailable ? unavailableMessage : undefined}
+    >
       {isSpecial && (
         <>
             {/* TOP: Animates left-to-right */}
@@ -101,20 +112,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
             <span className="absolute bottom-0 left-0 w-[1px] h-0 bg-brand-dark transition-all duration-200 ease-linear delay-[600ms] group-hover:h-full" />
         </>
       )}
-      <div className="relative overflow-hidden cursor-pointer" onClick={() => onViewDetails(product)}>
+      <div className={`relative overflow-hidden ${isAvailable ? 'cursor-pointer' : ''}`} onClick={() => isAvailable && onViewDetails(product)}>
           <img 
             src={product.image} 
             alt={product.name} 
-            className={`w-full h-48 ${product.imageFit === 'contain' ? 'object-contain' : 'object-cover'} group-hover:scale-110 transition-transform duration-500 ease-in-out`} 
+            className={`w-full h-48 ${product.imageFit === 'contain' ? 'object-contain' : 'object-cover'} ${isAvailable ? 'group-hover:scale-110' : ''} transition-transform duration-500 ease-in-out`} 
             style={{ objectPosition: product.imagePosition || 'center' }}
           />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-             <p className="text-white font-bold text-lg border-2 border-white rounded-full px-4 py-2">Dettagli</p>
-          </div>
+          {isAvailable && (
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+               <p className="text-white font-bold text-lg border-2 border-white rounded-full px-4 py-2">Dettagli</p>
+            </div>
+          )}
       </div>
       <div className="p-4 flex flex-col flex-grow">
         <h3 className={`text-xl font-bold ${titleClasses}`}>{product.name}</h3>
-        <p className={`mt-1 text-sm flex-grow ${descriptionClasses}`}>{product.description}</p>
+        <p className={`mt-1 text-sm flex-grow ${descriptionClasses}`} dangerouslySetInnerHTML={{ __html: product.description }}></p>
         
         <div className="mt-auto pt-4">
             <div className="mb-4">
@@ -142,16 +155,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
             {showTwoButtons ? (
                  <div className="flex items-stretch gap-2">
                     <button
-                        onClick={handleQuickAddDefault}
-                        disabled={!!isAdded}
-                        className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses}`}
+                        onClick={isAvailable ? handleQuickAddDefault : undefined}
+                        disabled={!!isAdded || !isAvailable}
+                        className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
                         aria-label="Aggiungi rapidamente al carrello"
                     >
                         {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
                     </button>
                     <button
-                        onClick={() => onViewDetails(product)}
-                        className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 ${personalizeBtnClasses}`}
+                        onClick={() => isAvailable && onViewDetails(product)}
+                        disabled={!isAvailable}
+                        className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                         Personalizza
                     </button>
@@ -166,9 +180,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                         return (
                             <button
                                 key={variant.name}
-                                onClick={() => handleQuickAddVariant(variant)}
-                                disabled={isVariantAdded}
-                                className={`flex-grow font-bold py-2 px-3 rounded-md transition-colors duration-300 text-sm flex items-center justify-center gap-2 ${isVariantAdded ? 'bg-green-600 text-white' : variantBtnClasses}`}
+                                onClick={() => isAvailable && handleQuickAddVariant(variant)}
+                                disabled={isVariantAdded || !isAvailable}
+                                className={`flex-grow font-bold py-2 px-3 rounded-md transition-colors duration-300 text-sm flex items-center justify-center gap-2 ${isVariantAdded ? 'bg-green-600 text-white' : variantBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
                             >
                                 {isVariantAdded ? (
                                     'Aggiunto!'
@@ -187,14 +201,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
             ) : (
                 <button
                     onClick={() => {
+                        if (!isAvailable) return;
                         if (requiresModal || isCustomizable || hasMenuOption) {
                             onViewDetails(product);
                         } else {
                             handleQuickAddDefault();
                         }
                     }}
-                    disabled={!!isAdded && !isCustomizable && !hasMenuOption}
-                    className={`w-full font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-green-600 ${isCustomizable || hasMenuOption ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
+                    disabled={(!!isAdded && !isCustomizable && !hasMenuOption) || !isAvailable}
+                    className={`w-full font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable || hasMenuOption ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
                 >
                     {isCustomizable || hasMenuOption ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}
                 </button>
