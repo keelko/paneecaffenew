@@ -86,7 +86,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     let extras: Extra[] = [];
     
     if (product.category === 'chips') {
-      extras = [...EXTRAS_CHIPS];
+      if (product.id === 16) {
+        extras = [];
+      } else if (product.id === 17) {
+        extras = EXTRAS_CHIPS.filter(e => ['Doppio Bacon', 'Doppio Cheddar'].includes(e.name));
+      } else if (product.id === 18) {
+        extras = EXTRAS_CHIPS.filter(e => e.name === 'Doppio Cheddar');
+      } else {
+        extras = [];
+      }
     } else {
       extras = [...EXTRAS_BURGER, ...EXTRAS_SAUCES];
     }
@@ -174,7 +182,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     }, 1000);
   };
 
-  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'chips'].includes(product.category)) && product.id !== 24;
+  const canBeCustomized = (['hamburger', 'american-sandwich', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'chips'].includes(product.category)) && product.id !== 24 && product.id !== 16;
   const showFrySauceSelector = canAddFrySauces;
   const showDrinkSelector = (variant === 'menu' && hasMenuOption) || isKidsMenu;
 
@@ -268,19 +276,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                 <h3 className="text-xl font-semibold text-white -mb-2">
                   {product.category === 'chips' ? 'Personalizza Patatine' : 'Personalizza Panino'}
                 </h3>
-                <details className="rounded-md border border-white/20 overflow-hidden" open>
-                      <summary className="p-4 bg-black/20 list-none cursor-pointer flex justify-between items-center group hover:bg-black/40">
-                          <h3 className="text-lg font-semibold text-green-300 flex items-center gap-2"><SparklesIcon className="h-5 w-5"/>Aggiungi Extra</h3>
-                          <ChevronDownIcon className="h-5 w-5 text-gray-300 group-open:rotate-180 transition-transform"/>
-                      </summary>
-                      <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {availableExtras.map(extra => (
-                              <button key={extra.name} onClick={() => handleToggleExtra(extra)} className={`p-2 rounded-md text-sm border ${addedExtras.some(e => e.name === extra.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}>
-                                  {extra.name} (+€{extra.price.toFixed(2)})
-                              </button>
-                          ))}
-                      </div>
-                  </details>
+                {availableExtras.length > 0 && (
+                  <details className="rounded-md border border-white/20 overflow-hidden" open>
+                        <summary className="p-4 bg-black/20 list-none cursor-pointer flex justify-between items-center group hover:bg-black/40">
+                            <h3 className="text-lg font-semibold text-green-300 flex items-center gap-2"><SparklesIcon className="h-5 w-5"/>Aggiungi Extra</h3>
+                            <ChevronDownIcon className="h-5 w-5 text-gray-300 group-open:rotate-180 transition-transform"/>
+                        </summary>
+                        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {availableExtras.map(extra => (
+                                <button key={extra.name} onClick={() => handleToggleExtra(extra)} className={`p-2 rounded-md text-sm border ${addedExtras.some(e => e.name === extra.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}>
+                                    {extra.name} (+€{extra.price.toFixed(2)})
+                                </button>
+                            ))}
+                        </div>
+                    </details>
+                )}
               </div>
             )}
             

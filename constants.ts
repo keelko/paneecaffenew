@@ -21,9 +21,8 @@ export const EXTRAS_SAUCES: Extra[] = [
 ];
 
 export const EXTRAS_CHIPS: Extra[] = [
-    { name: 'Cheddar', price: 1 },
-    { name: 'Bacon', price: 1 },
-    { name: 'Pulled Pork', price: 2 },
+    { name: 'Doppio Bacon', price: 2 },
+    { name: 'Doppio Cheddar', price: 2 },
 ];
 
 export const FRY_SAUCES: Extra[] = [
