@@ -19,9 +19,10 @@ interface ProductModalProps {
   onClose: () => void;
   onAddToCart: (item: Omit<CartItem, 'id' | 'quantity'>, quantity: number) => void;
   initialVariant?: CartItemVariant;
+  mode?: 'quick-menu' | 'full-customize';
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCart, initialVariant = 'panino' }) => {
+const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCart, initialVariant = 'panino', mode = 'full-customize' }) => {
   const [quantity, setQuantity] = useState(1);
   const [variant, setVariant] = useState<CartItemVariant>(initialVariant);
   const [removedIngredients, setRemovedIngredients] = useState<string[]>([]);
@@ -33,7 +34,16 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
   const [isImageZoomed, setIsImageZoomed] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [highlightDrink, setHighlightDrink] = useState(false);
   const drinkSectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (variant === 'menu') {
+      setHighlightDrink(true);
+      const timer = setTimeout(() => setHighlightDrink(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [variant]);
 
   const gallery = useMemo(() => [product.image, ...(product.galleryImages || [])], [product]);
 
@@ -172,7 +182,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     const item: Omit<CartItem, 'id' | 'quantity'> = {
         product,
         variant: isKidsMenu ? 'menu' : variant, // Treat Kids menus as a menu variant
-        notes,
+        notes: (variant === 'menu' || isKidsMenu) ? '' : notes,
         removedIngredients,
         addedExtras,
         selectedDrink: ((variant === 'menu' && hasMenuOption) || isKidsMenu) ? selectedDrink : undefined,
@@ -264,18 +274,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
             </div>
             <p className="text-gray-300" dangerouslySetInnerHTML={{ __html: product.description }}></p>
 
-            {hasMenuOption && (
+            {hasMenuOption && mode !== 'quick-menu' && (
               <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-black/30">
                 <button onClick={() => setVariant('panino')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'panino' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
                   <BurgerIcon className="h-5 w-5" /> Panino
                 </button>
-                <button onClick={() => setVariant('menu')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'menu' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
+                <button onClick={() => { setVariant('menu'); setHighlightDrink(false); setTimeout(() => setHighlightDrink(true), 10); }} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'menu' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
                   <MenuIcon className="h-5 w-5" /> Menù (+€{(product.menuPrice! - product.price).toFixed(2)})
                 </button>
               </div>
             )}
 
-            {canBeCustomized && (
+            {canBeCustomized && mode !== 'quick-menu' && (
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-white -mb-2">
                   {product.category === 'chips' ? 'Personalizza Patatine' : 'Personalizza Panino'}
@@ -302,20 +312,37 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               <div className="space-y-4">
                   {showFrySauceSelector && renderFrySauceSelector()}
                   {showDrinkSelector && (
-                    <div ref={drinkSectionRef} className="p-4 bg-black/30 rounded-md">
-                        <h3 className="text-lg font-semibold text-white mb-2 flex items-center gap-2"><DrinkIcon className="h-6 w-6 text-brand-orange"/> Scegli la Bibita (inclusa)</h3>
-                        <select value={selectedDrinkId ?? ''} onChange={(e) => setSelectedDrinkId(Number(e.target.value))} className={`w-full bg-brand-gray text-white border rounded-md p-2 focus:ring-2 focus:ring-brand-orange outline-none transition-all ${drinkError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-white/20'}`}>
-                            <option value="" disabled>Seleziona una bibita...</option>
-                            {(isKidsMenu ? KIDS_DRINKS : DRINKS).map(drink => <option key={drink.id} value={drink.id}>{drink.name}</option>)}
-                        </select>
-                        {drinkError && <p className="text-red-400 text-sm mt-2">Per favore, seleziona una bibita.</p>}
+                    <div ref={drinkSectionRef} className={`p-4 bg-black/30 rounded-md border transition-all duration-300 ${highlightDrink ? 'animate-drink-highlight' : 'border-white/10'}`}>
+                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                            <DrinkIcon className="h-6 w-6 text-brand-orange"/> 
+                            Scegli la Bibita (inclusa)
+                        </h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {(isKidsMenu ? KIDS_DRINKS : DRINKS).map(drink => (
+                                <button 
+                                    key={drink.id} 
+                                    onClick={() => setSelectedDrinkId(drink.id)} 
+                                    className={`relative flex items-center justify-center p-3 rounded-xl transition-all border group overflow-hidden ${selectedDrinkId === drink.id ? 'bg-brand-orange border-brand-orange shadow-lg scale-[1.02]' : 'bg-brand-gray/40 border-white/10 hover:border-brand-orange/30 hover:bg-white/5'}`}
+                                >
+                                    <span className={`text-xs text-center font-bold uppercase tracking-tight relative z-10 ${selectedDrinkId === drink.id ? 'text-white' : 'text-gray-300'}`}>
+                                        {drink.name}
+                                    </span>
+                                    {selectedDrinkId === drink.id && (
+                                        <div className="absolute top-1 right-1 bg-white text-brand-orange rounded-full p-0.5 shadow-sm z-20">
+                                            <CheckCircleIcon className="h-3 w-3" />
+                                        </div>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                        {drinkError && <p className="text-red-400 text-xs mt-2 font-medium animate-pulse">Per favore, seleziona una bibita per continuare.</p>}
                     </div>
                   )}
               </div>
             )}
 
-            {!product.isDrink &&
-              <div>
+            {!product.isDrink && variant !== 'menu' && !isKidsMenu &&
+              <div className="animate-fade-in">
                   <label htmlFor={`notes-${product.id}`} className="text-sm text-gray-300">Note aggiuntive:</label>
                   <input id={`notes-${product.id}`} type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 mt-1 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Altre richieste..."/>
               </div>

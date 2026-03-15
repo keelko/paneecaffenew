@@ -279,9 +279,12 @@ const App: React.FC = () => {
     setCartItems([]);
   }, []);
 
-  const handleViewDetails = useCallback((product: Product, initialVariant: CartItemVariant = 'panino') => {
+  const [selectedMode, setSelectedMode] = useState<'quick-menu' | 'full-customize'>('full-customize');
+
+  const handleViewDetails = useCallback((product: Product, initialVariant: CartItemVariant = 'panino', mode: 'quick-menu' | 'full-customize' = 'full-customize') => {
     setSelectedProduct(product);
     setSelectedVariant(initialVariant);
+    setSelectedMode(mode);
   }, []);
 
   const handleCloseModal = useCallback(() => {
@@ -368,7 +371,7 @@ const App: React.FC = () => {
               </div>
             </div>
         </div>
-        <div className="container mx-auto px-4 py-8 pt-0 space-y-16">
+        <div className="container mx-auto px-4 py-8 pt-4 space-y-16">
             {orderedCategories.length > 0 ? (
                 orderedCategories.map(category => {
                     const Icon = categoryIcons[category];
@@ -382,12 +385,30 @@ const App: React.FC = () => {
                             ref={el => { sectionRefs.current[category] = el; }}
                             className="scroll-mt-36"
                         >
-                            <div className={isMonthlySpecial ? 'bg-gradient-to-br from-brand-orange to-orange-600 p-6 rounded-2xl shadow-2xl' : ''}>
-                                <h2 className={`text-3xl font-bold mb-6 border-b-2 pb-2 flex items-center gap-3 ${isMonthlySpecial ? 'text-brand-dark border-black/20' : 'text-brand-orange border-white/10'}`}>
+                            <div className={isMonthlySpecial ? 'bg-gradient-to-br from-brand-orange to-orange-600 p-6 rounded-2xl shadow-2xl relative overflow-hidden' : ''}>
+                                {isMonthlySpecial && (
+                                    <>
+                                        <div 
+                                            className="absolute right-0 top-0 bottom-0 w-1/2 opacity-40 animate-flash-opacity pointer-events-none z-0 overflow-hidden"
+                                        >
+                                            <div 
+                                                className="w-full h-full"
+                                                style={{ 
+                                                    backgroundImage: 'url(https://i.imgur.com/BTUtA65.png)',
+                                                    backgroundSize: 'contain',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundPosition: 'right center',
+                                                    mixBlendMode: 'soft-light'
+                                                }}
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                                <h2 className={`text-3xl font-bold mb-6 border-b-2 pb-2 flex items-center gap-3 relative z-10 ${isMonthlySpecial ? 'text-brand-dark border-black/20' : 'text-brand-orange border-white/10'}`}>
                                     {Icon && <Icon className={`h-10 w-10 ${animationClass}`} />}
                                     <span>{CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category}</span>
                                 </h2>
-                                <div className={`grid gap-6 ${isSimpleCategory ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+                                <div className={`grid gap-6 relative z-10 ${isSimpleCategory ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
                                     {(productsByCategory[category] || []).map(product => (
                                         <ProductCard 
                                             key={product.id} 
@@ -418,6 +439,7 @@ const App: React.FC = () => {
             onClose={handleCloseModal}
             onAddToCart={handleAddToCart}
             initialVariant={selectedVariant}
+            mode={selectedMode}
         />
       )}
       {isCartOpen && (

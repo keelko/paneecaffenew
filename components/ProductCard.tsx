@@ -4,11 +4,12 @@ import ShoppingCartIcon from './icons/ShoppingCartIcon';
 import CheckCircleIcon from './icons/CheckCircleIcon';
 import SmallSauceIcon from './icons/SmallSauceIcon';
 import LargeSauceIcon from './icons/LargeSauceIcon';
+import PlusIcon from './icons/PlusIcon';
 
 interface ProductCardProps {
   product: Product;
   onAddToCart: (item: Omit<CartItem, 'id' | 'quantity'>, quantity: number) => void;
-  onViewDetails: (product: Product, initialVariant?: CartItemVariant) => void;
+  onViewDetails: (product: Product, initialVariant?: CartItemVariant, mode?: 'quick-menu' | 'full-customize') => void;
   isSpecial?: boolean;
 }
 
@@ -88,8 +89,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
     ? "bg-white/60 text-brand-dark border-brand-dark/30 hover:bg-white disabled:bg-green-600 disabled:text-white disabled:border-green-500"
     : "bg-black/20 text-white border-brand-orange hover:bg-black/40 disabled:bg-green-600 disabled:border-green-500";
   const personalizeBtnClasses = isSpecial
-    ? "bg-brand-dark text-white hover:bg-black"
-    : "bg-brand-orange text-white hover:bg-brand-orange/90";
+    ? "bg-brand-dark text-white hover:bg-black rounded-full text-[11px] uppercase tracking-widest shadow-sm"
+    : "bg-brand-orange text-white hover:bg-brand-orange/90 rounded-full text-[11px] uppercase tracking-widest shadow-sm";
 
   const variantBtnClasses = isSpecial 
     ? "bg-gray-300 hover:bg-gray-400 text-brand-dark" 
@@ -137,11 +138,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             onClick={(e) => { 
                                 e.stopPropagation(); 
                                 if (!isAvailable) return;
-                                if (isCustomizable) {
-                                    onViewDetails(product, 'panino');
-                                } else {
-                                    handleQuickAddDefault();
-                                }
+                                handleQuickAddDefault();
                             }}
                             disabled={!!isAdded || !isAvailable}
                             className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20'} disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -153,7 +150,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                         </button>
 
                         <button 
-                            onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'menu'); }}
+                            onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'menu', 'quick-menu'); }}
                             disabled={!isAvailable}
                             className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20'} disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden`}
                         >
@@ -161,18 +158,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             <span className="text-brand-orange font-bold text-lg">€{product.menuPrice!.toFixed(2)}</span>
                             <span className={`text-[10px] leading-tight text-center mt-1 px-1 ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>+ patatine e bibita</span>
                         </button>
-                        
-                        {!isCustomizable && (
-                            <button
-                                onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'panino'); }}
-                                disabled={!isAvailable}
-                                className={`w-12 rounded-md transition-all duration-300 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed text-xs`}
-                                aria-label="Aggiungi nota"
-                            >
-                                Nota
-                            </button>
-                        )}
                     </div>
+                    {isCustomizable ? (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'panino', 'full-customize'); }}
+                            disabled={!isAvailable}
+                            className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-dark/30 text-brand-dark/70 hover:bg-brand-dark hover:text-white' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            <PlusIcon className="h-3 w-3" />
+                            <span>Personalizza</span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'panino', 'full-customize'); }}
+                            disabled={!isAvailable}
+                            className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-dark/30 text-brand-dark/70 hover:bg-brand-dark hover:text-white' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                            <PlusIcon className="h-3 w-3" />
+                            <span>Personalizza</span>
+                        </button>
+                    )}
                 </div>
             ) : (
                 <>
@@ -196,22 +201,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                     </div>
                     
                     {showTwoButtons ? (
-                        <div className="flex items-stretch gap-2">
-                            <button
-                                onClick={isAvailable ? handleQuickAddDefault : undefined}
-                                disabled={!!isAdded || !isAvailable}
-                                className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                aria-label="Aggiungi rapidamente al carrello"
-                            >
-                                {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
-                            </button>
-                            <button
-                                onClick={() => isAvailable && onViewDetails(product)}
-                                disabled={!isAvailable}
-                                className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-                            >
-                                Personalizza
-                            </button>
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="flex items-stretch gap-2 w-full">
+                                <button
+                                    onClick={isAvailable ? handleQuickAddDefault : undefined}
+                                    disabled={!!isAdded || !isAvailable}
+                                    className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    aria-label="Aggiungi rapidamente al carrello"
+                                >
+                                    {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
+                                </button>
+                                <button
+                                    onClick={() => isAvailable && onViewDetails(product)}
+                                    disabled={!isAvailable}
+                                    className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center gap-2 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    <PlusIcon className="h-4 w-4" />
+                                    <span>Personalizza</span>
+                                </button>
+                            </div>
                         </div>
                     ) : (product.variants && product.variants.length > 0) ? (
                         <div className="flex items-stretch gap-2">
@@ -252,9 +260,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                                 }
                             }}
                             disabled={(!!isAdded && !isCustomizable) || !isAvailable}
-                            className={`w-full font-bold py-2 px-4 rounded-md transition-colors duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
+                            className={`w-fit mx-auto font-bold py-2 px-8 rounded-full transition-colors duration-300 flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
                         >
-                            {isCustomizable ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}
+                            {isCustomizable && <PlusIcon className="h-4 w-4" />}
+                            <span>{isCustomizable ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}</span>
                         </button>
                     )}
                 </>
