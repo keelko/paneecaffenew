@@ -5,6 +5,7 @@ import CheckCircleIcon from './icons/CheckCircleIcon';
 import SmallSauceIcon from './icons/SmallSauceIcon';
 import LargeSauceIcon from './icons/LargeSauceIcon';
 import PlusIcon from './icons/PlusIcon';
+import SettingsIcon from './icons/SettingsIcon';
 
 interface ProductCardProps {
   product: Product;
@@ -17,7 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
   const [isAdded, setIsAdded] = useState<string | boolean>(false);
   const hasMenuOption = product.menuPrice !== undefined;
   // Chicken Box (id 24) is not customizable
-  const isCustomizable = (['hamburger', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'american-sandwich', 'chips'].includes(product.category)) && product.id !== 24;
+  const isCustomizable = (['hamburger', 'sandwich-maiale', 'sandwich-pollo', 'veggy', 'panini-del-mese', 'kids-junior', 'box', 'american-sandwich', 'chips', 'starter'].includes(product.category)) && product.id !== 24;
   const isSimple = !!product.isDrink;
 
   const currentDay = new Date().getDay();
@@ -78,7 +79,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
   }
 
   // Determine button layout for complex cards
-  const requiresModal = product.category === 'kids-junior' || (product.category === 'box' && product.id !== 24);
+  const requiresModal = product.category === 'kids-junior';
   const showTwoButtons = (isCustomizable || hasMenuOption) && !requiresModal && !product.variants;
   
   const cardClasses = isSpecial ? "bg-brand-cream text-brand-dark" : "bg-brand-gray";
@@ -165,7 +166,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             disabled={!isAvailable}
                             className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-dark/30 text-brand-dark/70 hover:bg-brand-dark hover:text-white' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                            <PlusIcon className="h-3 w-3" />
+                            <SettingsIcon className="h-3 w-3" />
                             <span>Personalizza</span>
                         </button>
                     ) : (
@@ -174,7 +175,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             disabled={!isAvailable}
                             className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-dark/30 text-brand-dark/70 hover:bg-brand-dark hover:text-white' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                            <PlusIcon className="h-3 w-3" />
+                            <SettingsIcon className="h-3 w-3" />
                             <span>Personalizza</span>
                         </button>
                     )}
@@ -204,20 +205,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                         <div className="flex flex-col items-center gap-3">
                             <div className="flex items-stretch gap-2 w-full">
                                 <button
-                                    onClick={isAvailable ? handleQuickAddDefault : undefined}
+                                    onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        if (isAvailable && !isAdded) handleQuickAddDefault(); 
+                                    }}
                                     disabled={!!isAdded || !isAvailable}
-                                    className={`p-2 rounded-md transition-all duration-300 w-14 flex-shrink-0 flex justify-center items-center border ${quickAddBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-                                    aria-label="Aggiungi rapidamente al carrello"
+                                    className={`flex-grow font-bold py-2.5 px-4 rounded-md transition-all duration-300 flex items-center justify-center gap-2 shadow-sm ${isAdded ? 'bg-green-600 text-white' : (isSpecial ? 'bg-brand-dark text-white' : 'bg-brand-orange text-white')} disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
-                                    {isAdded ? <CheckCircleIcon className="h-6 w-6" /> : <ShoppingCartIcon className="h-6 w-6" />}
+                                    {isAdded ? <CheckCircleIcon className="h-5 w-5" /> : <ShoppingCartIcon className="h-5 w-5" />}
+                                    <span>{isAdded ? 'Aggiunto!' : 'Aggiungi'}</span>
                                 </button>
                                 <button
-                                    onClick={() => isAvailable && onViewDetails(product)}
+                                    onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product); }}
                                     disabled={!isAvailable}
-                                    className={`flex-grow font-bold py-2 px-4 rounded-md transition-colors duration-300 flex items-center justify-center gap-2 ${personalizeBtnClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 h-11 rounded-md border transition-all duration-300 ${isSpecial ? 'border-brand-dark/30 text-brand-dark hover:bg-brand-dark/10' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
-                                    <PlusIcon className="h-4 w-4" />
-                                    <span>Personalizza</span>
+                                    <SettingsIcon className="h-4 w-4" />
+                                    <span className="text-[10px] font-bold uppercase tracking-tight">Personalizza</span>
                                 </button>
                             </div>
                         </div>
@@ -262,7 +266,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             disabled={(!!isAdded && !isCustomizable) || !isAvailable}
                             className={`w-fit mx-auto font-bold py-2 px-8 rounded-full transition-colors duration-300 flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed ${isCustomizable ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90'}`}
                         >
-                            {isCustomizable && <PlusIcon className="h-4 w-4" />}
+                            {isCustomizable && <SettingsIcon className="h-4 w-4" />}
                             <span>{isCustomizable ? 'Personalizza' : (isAdded ? 'Aggiunto!' : 'Aggiungi')}</span>
                         </button>
                     )}

@@ -7,6 +7,7 @@ import CategoryNav, { CATEGORY_LABELS } from './components/CategoryNav';
 import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
 import CartModal from './components/CartModal';
+import FloatingCartBar from './components/FloatingCartBar';
 import Footer from './components/Footer';
 import ContactInfo from './components/ContactInfo';
 import SearchBar from './components/SearchBar';
@@ -97,6 +98,7 @@ const App: React.FC = () => {
   });
 
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showFloatingCart, setShowFloatingCart] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<CartItemVariant>('panino');
   const [activeCategory, setActiveCategory] = useState<ProductCategory>('panini-del-mese');
@@ -107,6 +109,7 @@ const App: React.FC = () => {
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const isScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<number>(0);
+  const cartTimerRef = useRef<number>(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -187,7 +190,7 @@ const App: React.FC = () => {
             }
         },
         { 
-          rootMargin: '-140px 0px -40% 0px', 
+          rootMargin: '-100px 0px -40% 0px', 
           threshold: 0.01 
         }
     );
@@ -229,7 +232,10 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-      return () => clearTimeout(scrollTimeoutRef.current);
+      return () => {
+          clearTimeout(scrollTimeoutRef.current);
+          clearTimeout(cartTimerRef.current);
+      };
   }, []);
 
   const handleAddToCart = useCallback((item: Omit<CartItem, 'id' | 'quantity'>, quantity: number) => {
@@ -256,6 +262,15 @@ const App: React.FC = () => {
 
     setIsCartAnimating(true);
     setTimeout(() => setIsCartAnimating(false), 500);
+
+    // Gestione visibilità barra flottante (10 secondi)
+    setShowFloatingCart(true);
+    if (cartTimerRef.current) {
+        window.clearTimeout(cartTimerRef.current);
+    }
+    cartTimerRef.current = window.setTimeout(() => {
+        setShowFloatingCart(false);
+    }, 10000);
   }, []);
   
   const handleUpdateCartQuantity = useCallback((itemId: string, newQuantity: number) => {
@@ -336,6 +351,10 @@ const App: React.FC = () => {
   const cartItemCount = useMemo(() => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   }, [cartItems]);
+
+  const totalCartPrice = useMemo(() => {
+    return cartItems.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+  }, [cartItems]);
   
   useEffect(() => {
       if (isCartOpen || selectedProduct) {
@@ -358,7 +377,7 @@ const App: React.FC = () => {
       />
       <main>
         {!isSearchActive && <Hero />}
-        <div id="category-nav-container" className="sticky top-20 z-30 bg-brand-dark/90 backdrop-blur-sm shadow-md">
+        <div id="category-nav-container" className="sticky top-16 md:top-24 z-30 bg-brand-dark/90 backdrop-blur-sm shadow-md">
             <CategoryNav
                 categories={orderedCategories}
                 activeCategory={activeCategory}
@@ -383,7 +402,7 @@ const App: React.FC = () => {
                             key={category} 
                             id={category} 
                             ref={el => { sectionRefs.current[category] = el; }}
-                            className="scroll-mt-36"
+                            className="scroll-mt-32 md:scroll-mt-48"
                         >
                             <div className={isMonthlySpecial ? 'bg-gradient-to-br from-brand-orange to-orange-600 p-6 rounded-2xl shadow-2xl relative overflow-hidden' : ''}>
                                 {isMonthlySpecial && (
@@ -452,6 +471,13 @@ const App: React.FC = () => {
             onClearCart={handleClearCart}
         />
       )}
+      <FloatingCartBar 
+        itemCount={cartItemCount} 
+        totalPrice={totalCartPrice} 
+        onClick={handleCartClick} 
+        isAnimating={isCartAnimating}
+        isVisible={showFloatingCart && !isCartOpen}
+      />
     </div>
   );
 };
