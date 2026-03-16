@@ -36,6 +36,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [highlightDrink, setHighlightDrink] = useState(false);
   const drinkSectionRef = useRef<HTMLDivElement>(null);
+  const isAutoAdding = useRef(false);
+
+  useEffect(() => {
+    if (variant === 'menu' && selectedDrinkId && !isAutoAdding.current && !isAddedToCart && mode === 'quick-menu') {
+      isAutoAdding.current = true;
+      // Small delay to let the user see the selection
+      const timer = setTimeout(() => {
+        handleAddToCartClick();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDrinkId, variant, mode]);
 
   useEffect(() => {
     if (variant === 'menu') {
@@ -182,7 +194,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     const item: Omit<CartItem, 'id' | 'quantity'> = {
         product,
         variant: isKidsMenu ? 'menu' : variant, // Treat Kids menus as a menu variant
-        notes: (variant === 'menu' || isKidsMenu) ? '' : notes,
+        notes: notes,
         removedIngredients,
         addedExtras,
         selectedDrink: ((variant === 'menu' && hasMenuOption) || isKidsMenu) ? selectedDrink : undefined,
@@ -205,7 +217,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
         <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2"><FriesIcon className="h-6 w-6 text-brand-orange"/>Salse per Patatine (bustine)</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {FRY_SAUCES.map(sauce => (
-                <button key={sauce.name} onClick={() => handleToggleFrySauce(sauce.name)} className={`p-2 rounded-md text-sm border ${selectedFrySauces.includes(sauce.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}>
+                <button key={sauce.name} onClick={() => handleToggleFrySauce(sauce.name)} className={`p-2 rounded-md text-[14.5px] sm:text-sm border ${selectedFrySauces.includes(sauce.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}>
                     {sauce.name}
                 </button>
             ))}
@@ -219,15 +231,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
         className="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4"
       >
         <div 
-          className="bg-brand-gray rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+          className="bg-brand-gray rounded-lg shadow-xl max-w-2xl w-full max-h-[98vh] sm:max-h-[90vh] flex flex-col relative overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="relative bg-brand-gray/50 p-4 rounded-t-lg">
+          <div className={`relative bg-brand-gray/50 transition-all duration-300 ${variant === 'menu' ? 'p-1 sm:p-4' : 'p-2 sm:p-4'}`}>
             <button onClick={() => setIsImageZoomed(true)} className="w-full block" aria-label="Visualizza immagine ingrandita">
               <img 
                 src={gallery[currentImageIndex]} 
                 alt={`${product.name} - ${currentImageIndex + 1}/${gallery.length}`} 
-                className={`w-full h-48 ${product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} object-center cursor-pointer transition-opacity duration-300`} 
+                className={`w-full transition-all duration-300 ${variant === 'menu' ? 'h-20 sm:h-48' : 'h-28 sm:h-48'} ${product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} object-center cursor-pointer`} 
                 key={gallery[currentImageIndex]}
               />
             </button>
@@ -258,21 +270,23 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
             </div>
             <button 
               onClick={onClose} 
-              className="absolute top-4 right-4 bg-black/50 p-2 rounded-full text-white hover:bg-black/80 transition-colors z-10"
+              className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-black/50 p-1.5 sm:p-2 rounded-full text-white hover:bg-black/80 transition-colors z-10"
               aria-label="Chiudi modale"
             >
-              <XMarkIcon className="h-6 w-6" />
+              <XMarkIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
           </div>
-          <div className="p-6 overflow-y-auto scrollbar-hide space-y-4">
-            <h2 className="text-3xl font-bold text-white">{product.name}</h2>
-            <div className="flex items-baseline gap-3 mt-1">
-                <p className="text-brand-orange text-2xl font-semibold">€{currentPrice.toFixed(2)}</p>
+          <div className={`overflow-y-auto scrollbar-hide space-y-2 sm:space-y-4 ${variant === 'menu' ? 'p-2 sm:p-6' : 'p-3 sm:p-6'}`}>
+            <h2 className={`font-bold text-white leading-tight ${variant === 'menu' ? 'text-lg sm:text-3xl' : 'text-xl sm:text-3xl'}`}>{product.name}</h2>
+            <div className="flex items-baseline gap-2 sm:gap-3">
+                <p className="text-brand-orange text-lg sm:text-2xl font-semibold">€{currentPrice.toFixed(2)}</p>
                 {variant === 'menu' && (
-                    <p className="text-sm text-brand-orange animate-fade-in">Incluso patatine fritte (con salse omaggio) + bibita a scelta</p>
+                    <p className="text-[9px] sm:text-sm text-brand-orange animate-fade-in leading-tight font-medium">Incluso patatine + bibita</p>
                 )}
             </div>
-            <p className="text-gray-300" dangerouslySetInnerHTML={{ __html: product.description }}></p>
+            {product.description && mode !== 'quick-menu' && (
+              <p className="text-gray-300 text-[12.5px] sm:text-base line-clamp-2 sm:line-clamp-none" dangerouslySetInnerHTML={{ __html: product.description }}></p>
+            )}
 
             {hasMenuOption && mode !== 'quick-menu' && (
               <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-black/30">
@@ -290,6 +304,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                 <h3 className="text-xl font-semibold text-white -mb-2">
                   {product.category === 'chips' ? 'Personalizza Patatine' : 'Personalizza Panino'}
                 </h3>
+
                 {availableExtras.length > 0 && (
                   <details className="rounded-md border border-white/20 overflow-hidden" open>
                         <summary className="p-4 bg-black/20 list-none cursor-pointer flex justify-between items-center group hover:bg-black/40">
@@ -298,7 +313,11 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                         </summary>
                         <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {availableExtras.map(extra => (
-                                <button key={extra.name} onClick={() => handleToggleExtra(extra)} className={`p-2 rounded-md text-sm border ${addedExtras.some(e => e.name === extra.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}>
+                                <button 
+                                  key={extra.name} 
+                                  onClick={() => handleToggleExtra(extra)} 
+                                  className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${addedExtras.some(e => e.name === extra.name) ? 'bg-brand-orange border-brand-orange text-white font-bold' : 'bg-brand-gray border-white/20 hover:bg-white/10'}`}
+                                >
                                     {extra.name} (+€{extra.price.toFixed(2)})
                                 </button>
                             ))}
@@ -312,49 +331,49 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               <div className="space-y-4">
                   {showFrySauceSelector && renderFrySauceSelector()}
                   {showDrinkSelector && (
-                    <div ref={drinkSectionRef} className={`p-4 bg-black/30 rounded-md border transition-all duration-300 ${highlightDrink ? 'animate-drink-highlight' : 'border-white/10'}`}>
-                        <h3 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                            <DrinkIcon className="h-6 w-6 text-brand-orange"/> 
-                            Scegli la Bibita (inclusa)
+                    <div ref={drinkSectionRef} className={`p-2 sm:p-4 bg-black/30 rounded-md border transition-all duration-300 ${highlightDrink ? 'animate-drink-highlight' : 'border-white/10'}`}>
+                        <h3 className="text-sm sm:text-lg font-semibold text-white mb-1.5 sm:mb-3 flex items-center gap-2">
+                            <DrinkIcon className="h-4 w-4 sm:h-6 sm:w-6 text-brand-orange"/> 
+                            Scegli la Bibita
                         </h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-2">
                             {(isKidsMenu ? KIDS_DRINKS : DRINKS).map(drink => (
                                 <button 
                                     key={drink.id} 
                                     onClick={() => setSelectedDrinkId(drink.id)} 
-                                    className={`relative flex items-center justify-center p-3 rounded-xl transition-all border group overflow-hidden ${selectedDrinkId === drink.id ? 'bg-brand-orange border-brand-orange shadow-lg scale-[1.02]' : 'bg-brand-gray/40 border-white/10 hover:border-brand-orange/30 hover:bg-white/5'}`}
+                                    className={`relative flex items-center justify-center p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-all border group overflow-hidden ${selectedDrinkId === drink.id ? 'bg-brand-orange border-brand-orange shadow-lg scale-[1.02]' : 'bg-brand-gray/40 border-white/10 hover:border-brand-orange/30 hover:bg-white/5'}`}
                                 >
-                                    <span className={`text-xs text-center font-bold uppercase tracking-tight relative z-10 ${selectedDrinkId === drink.id ? 'text-white' : 'text-gray-300'}`}>
+                                    <span className={`text-[9px] sm:text-xs text-center font-bold uppercase tracking-tight relative z-10 ${selectedDrinkId === drink.id ? 'text-white' : 'text-gray-300'}`}>
                                         {drink.name}
                                     </span>
                                     {selectedDrinkId === drink.id && (
-                                        <div className="absolute top-1 right-1 bg-white text-brand-orange rounded-full p-0.5 shadow-sm z-20">
-                                            <CheckCircleIcon className="h-3 w-3" />
+                                        <div className="absolute top-0.5 right-0.5 bg-white text-brand-orange rounded-full p-0.5 shadow-sm z-20">
+                                            <CheckCircleIcon className="h-2 w-2 sm:h-3 sm:w-3" />
                                         </div>
                                     )}
                                 </button>
                             ))}
                         </div>
-                        {drinkError && <p className="text-red-400 text-xs mt-2 font-medium animate-pulse">Per favore, seleziona una bibita per continuare.</p>}
+                        {drinkError && <p className="text-red-400 text-[9px] sm:text-xs mt-1 font-medium animate-pulse">Per favore, seleziona una bibita.</p>}
                     </div>
                   )}
               </div>
             )}
 
-            {!product.isDrink && variant !== 'menu' && !isKidsMenu &&
+            {!product.isDrink &&
               <div className="animate-fade-in">
                   <label htmlFor={`notes-${product.id}`} className="text-sm text-gray-300">Note aggiuntive:</label>
                   <input id={`notes-${product.id}`} type="text" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 mt-1 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Altre richieste..."/>
               </div>
             }
           </div>
-          <div className="p-6 mt-auto border-t border-white/10 bg-black/30 rounded-b-lg">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="p-4 sm:p-6 mt-auto border-t border-white/10 bg-black/30 rounded-b-lg">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
               <QuantitySelector quantity={quantity} onQuantityChange={setQuantity} disabled={isAddedToCart} />
               <button 
                 onClick={handleAddToCartClick} 
                 disabled={isAddedToCart}
-                className={`w-full sm:w-auto flex-grow text-white font-bold py-3 px-6 rounded-md transition-colors duration-300 ${
+                className={`w-full sm:w-auto flex-grow text-white font-bold py-2.5 sm:py-3 px-6 rounded-md transition-colors duration-300 ${
                   isAddedToCart 
                     ? 'bg-green-600 cursor-not-allowed' 
                     : 'bg-brand-orange hover:bg-brand-orange/90'
@@ -362,7 +381,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               >
                 {isAddedToCart ? (
                   <span className="flex items-center justify-center gap-2">
-                    <CheckCircleIcon className="h-6 w-6" />
+                    <CheckCircleIcon className="h-6 w-6 animate-pop" />
                     Aggiunto!
                   </span>
                 ) : (

@@ -41,65 +41,94 @@ const FALLBACK_TIME_SLOTS: TimeSlot[] = [
 ];
 
 
-const fetchAndParseTimeSlots = async (): Promise<TimeSlotsConfig> => {
+const fetchAndParseTimeSlots = async (retries = 2): Promise<TimeSlotsConfig> => {
     if (!TIME_SLOTS_CSV_URL) {
         console.error("URL del Google Sheet non configurato in config/googleSheet.ts");
         return {};
     }
-    try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        const urlToFetch = `${TIME_SLOTS_CSV_URL}&_=${new Date().getTime()}`;
-        const response = await fetch(`${proxyUrl}${encodeURIComponent(urlToFetch)}`);
-        
-        if (!response.ok) throw new Error('Network response was not ok.');
-        
-        let csvText = await response.text();
-        
-        if (csvText.charCodeAt(0) === 0xFEFF) {
-            csvText = csvText.substring(1);
+
+    const fetchWithTimeout = async (url: string, timeout = 5000) => {
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), timeout);
+        try {
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        } catch (e) {
+            clearTimeout(id);
+            throw e;
         }
-        
-        const rows = csvText.split(/\r?\n/);
-        if (rows.length < 2) return {};
+    };
 
-        const headerRow = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
-        const dayIndex = headerRow.indexOf('day');
-        const timeIndex = headerRow.indexOf('time');
-        const statusIndex = headerRow.indexOf('status');
-
-        if (dayIndex === -1 || timeIndex === -1 || statusIndex === -1) {
-            console.error("Intestazioni CSV non trovate. Assicurati che ci siano le colonne 'day', 'time', e 'status'.");
-            return {};
-        }
-
-        const dataRows = rows.slice(1);
-        
-        const config: TimeSlotsConfig = {
-            monday: {}, tuesday: {}, wednesday: {}, thursday: {}, 
-            friday: {}, saturday: {}, sunday: {}
-        };
-
-        dataRows.forEach(row => {
-            const trimmedRow = row.trim();
-            if (!trimmedRow) return;
-
-            const parts = trimmedRow.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
-            const day = (parts[dayIndex] || '').toLowerCase();
-            const time = parts[timeIndex];
-            
-            const rawStatus = (parts[statusIndex] || '').toLowerCase();
-            const status = rawStatus.includes('available') ? 'available' : 'unavailable';
-
-            if (day && time && status && config[day]) {
-                config[day][time] = status;
+    for (let i = 0; i <= retries; i++) {
+        try {
+            // Prova prima il fetch diretto (Google Sheets di solito permette CORS per i CSV pubblicati)
+            let response;
+            try {
+                const directUrl = `${TIME_SLOTS_CSV_URL}&_=${new Date().getTime()}`;
+                response = await fetchWithTimeout(directUrl);
+            } catch (e) {
+                // Se fallisce il fetch diretto (es. CORS), prova tramite proxy
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const urlToFetch = `${TIME_SLOTS_CSV_URL}&_=${new Date().getTime()}`;
+                response = await fetchWithTimeout(`${proxyUrl}${encodeURIComponent(urlToFetch)}`);
             }
-        });
-        
-        return config;
-    } catch (error) {
-        console.error("Errore nel recuperare o analizzare gli orari:", error);
-        return {};
+            
+            if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
+            
+            let csvText = await response.text();
+            
+            if (csvText.charCodeAt(0) === 0xFEFF) {
+                csvText = csvText.substring(1);
+            }
+            
+            const rows = csvText.split(/\r?\n/);
+            if (rows.length < 2) return {};
+
+            const headerRow = rows[0].split(',').map(h => h.trim().toLowerCase().replace(/^"|"$/g, ''));
+            const dayIndex = headerRow.indexOf('day');
+            const timeIndex = headerRow.indexOf('time');
+            const statusIndex = headerRow.indexOf('status');
+
+            if (dayIndex === -1 || timeIndex === -1 || statusIndex === -1) {
+                console.error("Intestazioni CSV non trovate. Assicurati che ci siano le colonne 'day', 'time', e 'status'.");
+                return {};
+            }
+
+            const dataRows = rows.slice(1);
+            
+            const config: TimeSlotsConfig = {
+                monday: {}, tuesday: {}, wednesday: {}, thursday: {}, 
+                friday: {}, saturday: {}, sunday: {}
+            };
+
+            dataRows.forEach(row => {
+                const trimmedRow = row.trim();
+                if (!trimmedRow) return;
+
+                const parts = trimmedRow.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+                const day = (parts[dayIndex] || '').toLowerCase();
+                const time = parts[timeIndex];
+                
+                const rawStatus = (parts[statusIndex] || '').toLowerCase();
+                const status = rawStatus.includes('available') ? 'available' : 'unavailable';
+
+                if (day && time && status && config[day]) {
+                    config[day][time] = status;
+                }
+            });
+            
+            return config;
+        } catch (error) {
+            if (i === retries) {
+                console.error("Errore nel recuperare o analizzare gli orari dopo vari tentativi:", error);
+                return {};
+            }
+            // Aspetta un po' prima di riprovare
+            await new Promise(res => setTimeout(res, 500 * (i + 1)));
+        }
     }
+    return {};
 };
 
 
@@ -128,7 +157,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
             let slotsToProcess: TimeSlot[] = [];
 
             const timeoutPromise = new Promise<never>((_, reject) =>
-                setTimeout(() => reject(new Error('Timeout after 2 seconds')), 2000)
+                setTimeout(() => reject(new Error('Timeout after 10 seconds')), 10000)
             );
 
             try {
