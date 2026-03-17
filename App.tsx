@@ -368,7 +368,7 @@ const App: React.FC = () => {
   }, [isCartOpen, selectedProduct]);
 
   return (
-    <div className="bg-brand-dark text-brand-cream min-h-screen font-sans">
+    <div className="bg-brand-cream text-brand-dark min-h-screen font-sans">
       <Header 
         cartItemCount={cartItemCount} 
         onCartClick={handleCartClick} 
@@ -377,7 +377,7 @@ const App: React.FC = () => {
       />
       <main>
         {!isSearchActive && <Hero />}
-        <div id="category-nav-container" className="sticky top-16 md:top-24 z-30 bg-brand-dark/90 backdrop-blur-sm shadow-md">
+        <div id="category-nav-container" className="sticky top-20 md:top-28 z-30 bg-brand-cream/90 backdrop-blur-sm shadow-sm border-b border-brand-red/10">
             <CategoryNav
                 categories={orderedCategories}
                 activeCategory={activeCategory}
@@ -404,27 +404,9 @@ const App: React.FC = () => {
                             ref={el => { sectionRefs.current[category] = el; }}
                             className="scroll-mt-32 md:scroll-mt-48"
                         >
-                            <div className={isMonthlySpecial ? 'bg-gradient-to-br from-brand-orange to-orange-600 p-6 rounded-2xl shadow-2xl relative overflow-hidden' : ''}>
-                                {isMonthlySpecial && (
-                                    <>
-                                        <div 
-                                            className="absolute right-0 top-0 bottom-0 w-1/2 opacity-40 animate-flash-opacity pointer-events-none z-0 overflow-hidden"
-                                        >
-                                            <div 
-                                                className="w-full h-full"
-                                                style={{ 
-                                                    backgroundImage: 'url(https://i.imgur.com/BTUtA65.png)',
-                                                    backgroundSize: 'contain',
-                                                    backgroundRepeat: 'no-repeat',
-                                                    backgroundPosition: 'right center',
-                                                    mixBlendMode: 'soft-light'
-                                                }}
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                                <h2 className={`text-3xl font-bold mb-6 border-b-2 pb-2 flex items-center gap-3 relative z-10 ${isMonthlySpecial ? 'text-brand-dark border-black/20' : 'text-brand-orange border-white/10'}`}>
-                                    {Icon && <Icon className={`h-10 w-10 ${animationClass}`} />}
+                            <div className={isMonthlySpecial ? 'bg-white p-6 rounded-2xl shadow-xl border-2 border-brand-red/20 relative overflow-hidden' : ''}>
+                                <h2 className={`text-4xl font-bebas tracking-wide uppercase mb-6 border-b-2 pb-2 flex items-center gap-3 relative z-10 ${isMonthlySpecial ? 'text-brand-red border-brand-red/20' : 'text-brand-red border-brand-red/10'}`}>
+                                    {Icon && <Icon className={`h-10 w-10 ${animationClass} text-brand-red`} />}
                                     <span>{CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS] || category}</span>
                                 </h2>
                                 <div className={`grid gap-6 relative z-10 ${isSimpleCategory ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>

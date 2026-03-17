@@ -18,7 +18,7 @@ const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(({ query, onQuery
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
                 placeholder="Cerca un panino, un ingrediente..."
-                className="w-full bg-brand-gray text-white border border-white/20 rounded-full py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-brand-orange transition-all duration-300 placeholder-gray-500"
+                className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-full py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-brand-red transition-all duration-300 placeholder-gray-400"
                 aria-label="Cerca prodotti"
             />
         </div>

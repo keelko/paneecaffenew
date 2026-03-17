@@ -54,7 +54,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
 
 
     return (
-        <nav className="border-b border-brand-orange/50">
+        <nav className="border-b border-brand-red/10">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between">
                     <div 
@@ -62,7 +62,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                         className="relative flex space-x-1 sm:space-x-4 overflow-x-auto py-3 scrollbar-hide"
                     >
                         <div 
-                            className="absolute bg-brand-orange rounded-full transition-all duration-300 ease-in-out"
+                            className="absolute bg-brand-red rounded-full transition-all duration-300 ease-in-out"
                             style={{
                                 ...indicatorStyle,
                                 top: '0.375rem',
@@ -75,14 +75,14 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                         {displayCategories.map(category => {
                             const isMonthlySpecial = category === 'panini-del-mese';
                             const isActive = activeCategory === category;
-                            const textClass = isActive ? 'text-white' : (isMonthlySpecial ? 'text-brand-orange' : 'text-brand-cream');
+                            const textClass = isActive ? 'text-white' : (isMonthlySpecial ? 'text-brand-red' : 'text-brand-dark');
 
                             return (
                                 <button
                                     key={category}
                                     ref={el => { buttonRefs.current[category] = el; }}
                                     onClick={() => onSelectCategory(category)}
-                                    className="relative px-3 sm:px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors duration-300 flex items-center gap-2 z-10"
+                                    className="relative px-3 sm:px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 flex items-center gap-2 z-10"
                                 >
                                     {isMonthlySpecial && <AnimatedCalendarIcon className={`h-4 w-4 ${textClass} transition-colors duration-300`} />}
                                     <span className={`${textClass} transition-colors duration-300`}>{CATEGORY_LABELS[category] || category}</span>
@@ -91,7 +91,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                         })}
                          <button
                             onClick={() => onSelectCategory('contatti')}
-                            className="relative px-3 sm:px-4 py-2 text-sm font-semibold rounded-full whitespace-nowrap transition-colors duration-300 text-brand-orange hover:text-brand-orange/90 z-10"
+                            className="relative px-3 sm:px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 text-brand-red hover:text-brand-red/90 z-10"
                         >
                             Contatti
                         </button>
@@ -99,7 +99,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                     <div className="flex-shrink-0 flex items-center pl-2">
                         <button
                             onClick={onSearchClick}
-                            className="relative flex-shrink-0 pl-2 text-brand-orange hover:text-brand-orange/90 z-10"
+                            className="relative flex-shrink-0 pl-2 text-brand-red hover:text-brand-red/90 z-10"
                             aria-label="Cerca prodotti"
                         >
                             <SearchIcon className="h-5 w-5" />

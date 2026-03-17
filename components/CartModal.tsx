@@ -11,7 +11,7 @@ import PickupIcon from './icons/PickupIcon';
 import DeliveryIcon from './icons/DeliveryIcon';
 import WhatsAppIcon from './icons/WhatsAppIcon';
 import ArrowRightIcon from './icons/ArrowRightIcon';
-import CheckCircleIcon from './icons/CheckCircleIcon';
+import AddressInput from './AddressInput';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -135,7 +135,10 @@ const fetchAndParseTimeSlots = async (retries = 2): Promise<TimeSlotsConfig> => 
 const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) => {
   const [step, setStep] = useState(1); // 1: Summary, 2: Details, 3: Success
   const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
-  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('Ariano Irpino');
+  const [street, setStreet] = useState('');
+  const [houseNumber, setHouseNumber] = useState('');
+  const [mapsLink, setMapsLink] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [timeSlot, setTimeSlot] = useState('asap');
@@ -222,10 +225,23 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     if (navigator.geolocation) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
-          const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-          setAddress(mapsLink);
+          const link = `https://www.google.com/maps?q=${latitude},${longitude}`;
+          setMapsLink(link);
+          
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&email=downloandroid@gmail.com`);
+            const data = await res.json();
+            if (data && data.address) {
+                setCity(data.address.town || data.address.city || data.address.village || 'Ariano Irpino');
+                setStreet(data.address.road || '');
+                setHouseNumber(data.address.house_number || '');
+            }
+          } catch (e) {
+            console.error("Reverse geocoding failed", e);
+          }
+
           setIsLocating(false);
         },
         (error) => {
@@ -263,11 +279,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
             return detail;
         }).join(' / ');
 
+        const fullAddress = `${street}, ${houseNumber}, ${city}${mapsLink ? `\nPosizione GPS: ${mapsLink}` : ''}`;
+        
         const payload = {
             customerName: customerName.trim(),
             phoneNumber: phoneNumber.trim(),
             deliveryType: deliveryType === 'delivery' ? 'Consegna a Domicilio' : 'Ritiro in Sede',
-            address: deliveryType === 'delivery' ? address.trim() : '',
+            address: deliveryType === 'delivery' ? fullAddress : '',
             orderDetails: orderDetailsString,
             totalPrice: finalTotalPrice.toFixed(2).replace('.', ','),
         };
@@ -342,7 +360,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     message += `*TOTALE:* *€${finalTotalPrice.toFixed(2)}*\n\n`;
     
     if (deliveryType === 'delivery') {
-        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${address}\n\n`;
+        const fullAddress = `${street}, ${houseNumber}, ${city}${mapsLink ? `\n📍 Posizione GPS: ${mapsLink}` : ''}`;
+        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${fullAddress}\n\n`;
     } else {
         message += `🏠 *INDIRIZZO DI RITIRO:*\n${RESTAURANT_ADDRESS}\n\n`;
     }
@@ -393,8 +412,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     if (!isNameValid || !isPhoneValid) {
         return;
     }
-    if (deliveryType === 'delivery' && !address.trim()) {
-      alert("Per favore, inserisci un indirizzo o rileva la tua posizione per la consegna.");
+    if (deliveryType === 'delivery' && (!street.trim() || !houseNumber.trim() || !city.trim())) {
+      alert("Per favore, compila tutti i campi dell'indirizzo (Paese, Via e Civico) o usa la tua posizione attuale.");
       return;
     }
     setShowWhatsAppConfirmation(true);
@@ -436,13 +455,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               <div className="flex justify-end mb-2">
                 <button onClick={handleFullClearCart} className="text-sm text-red-500 hover:text-red-400">Svuota carrello</button>
               </div>
-              <ul className="divide-y divide-white/10">
+              <ul className="divide-y border-brand-red/10">
                 {cartItems.map(item => (
                     <li key={item.id} className="py-4 flex items-start space-x-4">
-                      <img src={item.product.image} alt={item.product.name} className={`w-16 h-16 ${item.product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-md bg-white/5 p-1`} />
+                      <img src={item.product.image} alt={item.product.name} className={`w-16 h-16 ${item.product.imageFit === 'cover' ? 'object-cover' : 'object-contain'} rounded-md bg-brand-red/5 p-1`} />
                       <div className="flex-grow">
-                        <p className="font-bold text-white">{item.product.name} {item.variant === 'menu' ? '(Menù)' : ''}</p>
-                        <div className="text-xs text-gray-400 space-y-1 mt-1">
+                        <p className="font-bold text-brand-dark">{item.product.name} {item.variant === 'menu' ? '(Menù)' : ''}</p>
+                        <div className="text-xs text-gray-600 space-y-1 mt-1">
                             {item.variant === 'menu' && <p>Bibita: {item.selectedDrink?.name}</p>}
                             {item.removedIngredients.length > 0 && <p>Senza: {item.removedIngredients.join(', ')}</p>}
                             {item.addedExtras.length > 0 && <p>Extra: {item.addedExtras.map(e => e.name).join(', ')}</p>}
@@ -455,7 +474,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                           quantity={item.quantity} 
                           onQuantityChange={(newQuantity) => onUpdateQuantity(item.id, newQuantity)} 
                         />
-                        <span className="text-lg font-semibold text-brand-orange">€{(item.finalPrice * item.quantity).toFixed(2)}</span>
+                        <span className="text-lg font-semibold text-brand-red">€{(item.finalPrice * item.quantity).toFixed(2)}</span>
                         <button onClick={() => onRemoveItem(item.id)} className="text-gray-500 hover:text-red-500" aria-label="Rimuovi articolo"><TrashIcon className="h-4 w-4"/></button>
                       </div>
                     </li>
@@ -465,16 +484,16 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
           )}
         </div>
         {cartItems.length > 0 && (
-            <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-sm">
+            <div className="p-4 border-t border-brand-red/10 bg-brand-red/5">
                  <div className="space-y-2 text-lg">
-                    <div className="flex justify-between items-center font-bold text-xl">
+                    <div className="flex justify-between items-center font-bold text-xl text-brand-dark">
                         <span>Totale</span>
                         <span>€{baseTotalPrice.toFixed(2)}</span>
                     </div>
                  </div>
                  <button
                     onClick={() => setStep(2)}
-                    className="mt-4 w-full bg-brand-orange text-white font-bold py-3 px-4 rounded-md hover:bg-brand-orange/90 transition-colors duration-300 flex items-center justify-center gap-2"
+                    className="mt-4 w-full bg-brand-red text-white font-bold py-3 px-4 rounded-md hover:bg-brand-red/90 transition-colors duration-300 flex items-center justify-center gap-2"
                 >
                   <span>Prosegui (€{baseTotalPrice.toFixed(2)})</span>
                   <ArrowRightIcon className="h-5 w-5" />
@@ -488,25 +507,25 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     <>
         <div className="p-4 flex-grow overflow-y-auto scrollbar-hide space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Modalità di Ritiro</label>
-                <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-black/30">
-                    <button onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Modalità di Ritiro</label>
+                <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-brand-red/5">
+                    <button onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                       <PickupIcon className="h-5 w-5"/> Ritiro in Sede
                     </button>
-                    <button onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-orange text-white font-bold shadow-md' : 'text-white hover:bg-white/10'}`}>
+                    <button onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                       <DeliveryIcon className="h-5 w-5"/> Consegna (+€{DELIVERY_FEE.toFixed(2)})
                     </button>
                 </div>
               </div>
               {deliveryType === 'pickup' && (
-                  <div className="text-center bg-black/30 p-3 rounded-md">
-                      <p className="text-sm font-semibold text-white">Indirizzo per il ritiro:</p>
-                      <p className="text-xs text-gray-300">{RESTAURANT_ADDRESS}</p>
+                  <div className="text-center bg-brand-red/5 p-3 rounded-md">
+                      <p className="text-sm font-semibold text-brand-dark">Indirizzo per il ritiro:</p>
+                      <p className="text-xs text-gray-600">{RESTAURANT_ADDRESS}</p>
                   </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                      <label htmlFor="customerName" className="block text-sm font-medium text-gray-300 mb-1">Nome e Cognome</label>
+                      <label htmlFor="customerName" className="block text-sm font-medium text-gray-600 mb-1">Nome e Cognome</label>
                       <input 
                         id="customerName" 
                         type="text" 
@@ -515,12 +534,12 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                             setCustomerName(e.target.value);
                             if (nameError) setNameError(false);
                         }} 
-                        className={`w-full bg-brand-gray text-white border rounded-md p-2 outline-none transition-all ${nameError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-white/20 focus:ring-2 focus:ring-brand-orange'}`}
+                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${nameError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
                         placeholder="Mario Rossi" />
-                      {nameError && <p className="text-red-400 text-sm mt-1">Per favore, inserisci nome e cognome.</p>}
+                      {nameError && <p className="text-red-600 text-sm mt-1">Per favore, inserisci nome e cognome.</p>}
                   </div>
                   <div>
-                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-300 mb-1">Numero di Telefono</label>
+                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-600 mb-1">Numero di Telefono</label>
                       <input 
                         id="phoneNumber" 
                         type="tel" 
@@ -529,13 +548,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                             setPhoneNumber(e.target.value);
                             if (phoneError) setPhoneError(false);
                         }} 
-                        className={`w-full bg-brand-gray text-white border rounded-md p-2 outline-none transition-all ${phoneError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-white/20 focus:ring-2 focus:ring-brand-orange'}`}
+                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${phoneError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
                         placeholder="3331234567" />
-                      {phoneError && <p className="text-red-400 text-sm mt-1">Per favore, inserisci un numero.</p>}
+                      {phoneError && <p className="text-red-600 text-sm mt-1">Per favore, inserisci un numero.</p>}
                   </div>
                   <div className="sm:col-span-2">
-                      <label htmlFor="timeSlot" className="block text-sm font-medium text-gray-300 mb-1">Orario</label>
-                      <select id="timeSlot" value={timeSlot} onChange={e => setTimeSlot(e.target.value)} disabled={isLoadingTimes} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 focus:ring-2 focus:ring-brand-orange outline-none disabled:opacity-50">
+                      <label htmlFor="timeSlot" className="block text-sm font-medium text-gray-600 mb-1">Orario</label>
+                      <select id="timeSlot" value={timeSlot} onChange={e => setTimeSlot(e.target.value)} disabled={isLoadingTimes} className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none disabled:opacity-50">
                           <option value="asap">{usingFallbackTimes ? '🏃‍♂️' : '⚡'} Il prima possibile</option>
                           {isLoadingTimes ? (
                               <option disabled>Caricamento orari...</option>
@@ -553,7 +572,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                                         key={slot.time} 
                                         value={slot.time} 
                                         disabled={isUnavailable}
-                                        className={isUnavailable ? 'text-gray-500' : ''}
+                                        className={isUnavailable ? 'text-gray-400' : ''}
                                     >
                                         {label}
                                     </option>
@@ -564,35 +583,39 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                               <option disabled>Nessun orario prenotabile per oggi.</option>
                           )}
                       </select>
-                      <p className="text-xs text-gray-400 mt-1">Gli ordini chiudono alle 23:00.</p>
+                      <p className="text-xs text-gray-500 mt-1">Gli ordini chiudono alle 23:00.</p>
                   </div>
               </div>
 
               {deliveryType === 'delivery' && (
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-300 mb-1">Indirizzo di consegna</label>
-                  <div className="flex gap-2">
-                    <input id="address" type="text" value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-brand-gray text-white border border-white/20 rounded-md p-2 focus:ring-2 focus:ring-brand-orange outline-none" placeholder="Via, numero civico, città" />
-                    <button onClick={handleGetLocation} disabled={isLocating} className="p-2 bg-blue-600 rounded-md hover:bg-blue-500 disabled:bg-gray-500 flex items-center justify-center" aria-label="Rileva posizione GPS">
-                      {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className="h-5 w-5"/>}
-                    </button>
-                  </div>
+                <div className="pt-2 border-t border-brand-red/10">
+                  <h3 className="text-lg font-bold text-brand-dark mb-3">Indirizzo di Consegna</h3>
+                  <AddressInput 
+                    city={city}
+                    setCity={setCity}
+                    street={street}
+                    setStreet={setStreet}
+                    houseNumber={houseNumber}
+                    setHouseNumber={setHouseNumber}
+                    onGetLocation={handleGetLocation}
+                    isLocating={isLocating}
+                  />
                 </div>
               )}
         </div>
-        <div className="p-4 border-t border-white/10 bg-black/50 backdrop-blur-sm">
+        <div className="p-4 border-t border-brand-red/10 bg-brand-red/5">
              <div className="space-y-1 mb-4 text-lg">
-                <div className="flex justify-between items-center text-gray-300">
+                <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotale</span>
                     <span>€{baseTotalPrice.toFixed(2)}</span>
                 </div>
                 {deliveryType === 'delivery' && (
-                <div className="flex justify-between items-center text-gray-300">
+                <div className="flex justify-between items-center text-gray-600">
                     <span>Consegna</span>
                     <span>€{DELIVERY_FEE.toFixed(2)}</span>
                 </div>
                 )}
-                <div className="flex justify-between items-center font-bold text-xl border-t border-white/20 pt-2 mt-2">
+                <div className="flex justify-between items-center font-bold text-xl border-t border-brand-red/20 pt-2 mt-2 text-brand-dark">
                     <span>Totale</span>
                     <span>€{finalTotalPrice.toFixed(2)}</span>
                 </div>
@@ -605,7 +628,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                   <WhatsAppIcon className="h-6 w-6" />
                   <span>Invia Ordine su WhatsApp</span>
                 </button>
-                <button onClick={() => setStep(1)} className="w-full text-center text-gray-300 text-sm py-2 hover:text-white">
+                <button onClick={() => setStep(1)} className="w-full text-center text-gray-600 text-sm py-2 hover:text-brand-dark">
                     Torna al Riepilogo
                 </button>
             </div>
@@ -616,11 +639,11 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const renderSuccessStep = () => (
     <div className="p-8 flex flex-col items-center justify-center text-center flex-grow animate-fade-in">
         <CheckCircleIcon className="h-20 w-20 text-green-500" />
-        <h3 className="text-2xl font-bold text-green-400 mt-4">Ordine Inviato con Successo!</h3>
-        <p className="text-gray-300 mt-2 max-w-sm">
+        <h3 className="text-2xl font-bold text-green-600 mt-4">Ordine Inviato con Successo!</h3>
+        <p className="text-gray-600 mt-2 max-w-sm">
             Il tuo ordine è stato inviato a Pane & Caffè. Riceverai una conferma e l'orario definitivo direttamente su WhatsApp.
         </p>
-        <p className="text-gray-400 mt-4 text-sm">
+        <p className="text-gray-500 mt-4 text-sm">
             Questa finestra si chiuderà tra poco...
         </p>
     </div>
@@ -629,16 +652,16 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const renderWhatsAppConfirmation = () => (
     <div className="fixed inset-0 bg-black/80 z-[51] flex justify-center items-center p-4" onClick={() => setShowWhatsAppConfirmation(false)}>
       <div 
-        className="bg-brand-dark border border-white/20 rounded-lg shadow-2xl w-full max-w-md p-6 text-center flex flex-col items-center space-y-4 animate-fade-in"
+        className="bg-brand-cream border border-brand-red/10 rounded-lg shadow-2xl w-full max-w-md p-6 text-center flex flex-col items-center space-y-4 animate-fade-in"
         onClick={e => e.stopPropagation()}
       >
         <WhatsAppIcon className="h-16 w-16 text-green-500" />
-        <h3 className="text-2xl font-bold text-white">Quasi Fatto!</h3>
-        <p className="text-gray-300">
+        <h3 className="text-3xl font-bebas tracking-wide text-brand-dark">Quasi Fatto!</h3>
+        <p className="text-gray-600">
           Stai per essere reindirizzato su WhatsApp. Per confermare l'ordine,{' '}
-          <strong className="text-white">devi solo premere "Invia"</strong> nel messaggio che abbiamo preparato per te.
+          <strong className="text-brand-dark">devi solo premere "Invia"</strong> nel messaggio che abbiamo preparato per te.
         </p>
-        <p className="text-sm text-yellow-400 bg-yellow-900/30 px-3 py-2 rounded-md">
+        <p className="text-sm text-yellow-700 bg-yellow-100 px-3 py-2 rounded-md">
           ⚠️ Senza l'invio del messaggio, il tuo ordine non sarà ricevuto!
         </p>
         <div className="w-full pt-4 space-y-2">
@@ -650,7 +673,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
           </button>
           <button 
             onClick={() => setShowWhatsAppConfirmation(false)} 
-            className="w-full text-center text-gray-300 text-sm py-2 hover:text-white"
+            className="w-full text-center text-gray-600 text-sm py-2 hover:text-brand-dark"
           >
             Torna al carrello
           </button>
@@ -661,14 +684,14 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
-      <div className="bg-brand-gray rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
-        <div className="flex justify-between items-center p-4 border-b border-white/10">
-          <h2 className="text-2xl font-bold text-white">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-4 border-b border-brand-red/10">
+          <h2 className="text-3xl font-bebas tracking-wide text-brand-dark">
             {step === 1 && 'Riepilogo Ordine'}
             {step === 2 && 'Dettagli e Conferma'}
             {step === 3 && 'Fatto!'}
           </h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10" aria-label="Chiudi carrello"><XMarkIcon className="h-6 w-6" /></button>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-brand-red/5" aria-label="Chiudi carrello"><XMarkIcon className="h-6 w-6 text-brand-dark" /></button>
         </div>
         
         {step === 1 && renderSummaryStep()}

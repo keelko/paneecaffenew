@@ -55,15 +55,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
   if (isSimple) {
     return (
         <div 
-          className={`bg-brand-gray rounded-lg p-4 shadow-lg flex justify-between items-center h-full ${!isAvailable ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+          className={`bg-white rounded-lg p-4 shadow-md flex justify-between items-center h-full border border-brand-red/5 ${!isAvailable ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
           title={!isAvailable ? unavailableMessage : undefined}
         >
             <div className="pr-4">
-                <h3 className="text-lg font-bold text-white">{product.name}</h3>
-                <p className="text-gray-400 text-[14.5px]" dangerouslySetInnerHTML={{ __html: product.description }}></p>
+                <h3 className="text-lg font-bold text-brand-dark">{product.name}</h3>
+                <p className="text-gray-600 text-[14.5px]" dangerouslySetInnerHTML={{ __html: product.description }}></p>
             </div>
             <div className="text-right flex-shrink-0">
-                <p className="text-brand-orange text-xl font-semibold mb-2">
+                <p className="text-brand-red text-xl font-semibold mb-2">
                     €{product.price.toFixed(2)}
                 </p>
                 <button
@@ -72,7 +72,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                     className={`font-bold py-1 px-3 rounded-md transition-colors duration-300 text-sm disabled:cursor-not-allowed flex items-center gap-1 ${
                         isAdded 
                         ? 'bg-green-600 text-white' 
-                        : 'bg-brand-orange text-white hover:bg-brand-orange/90'
+                        : 'bg-brand-red text-white hover:bg-brand-red/90'
                     } ${!isAvailable ? 'bg-gray-500' : ''}`}
                 >
                     {isAdded ? (
@@ -93,20 +93,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
   const requiresModal = product.category === 'kids-junior';
   const showTwoButtons = (isCustomizable || hasMenuOption) && !requiresModal && !product.variants;
   
-  const cardClasses = isSpecial ? "bg-brand-cream text-brand-dark" : "bg-brand-gray";
-  const titleClasses = isSpecial ? "text-brand-dark" : "text-white";
-  const descriptionClasses = isSpecial ? "text-gray-700" : "text-gray-400";
-  const menuPriceClasses = isSpecial ? "text-gray-600 font-medium" : "text-white font-normal";
-  const quickAddBtnClasses = isSpecial 
-    ? "bg-white/60 text-brand-dark border-brand-dark/30 hover:bg-white disabled:bg-green-600 disabled:text-white disabled:border-green-500"
-    : "bg-black/20 text-white border-brand-orange hover:bg-black/40 disabled:bg-green-600 disabled:border-green-500";
-  const personalizeBtnClasses = isSpecial
-    ? "bg-brand-dark text-white hover:bg-black rounded-full text-[11px] uppercase tracking-widest shadow-sm"
-    : "bg-brand-orange text-white hover:bg-brand-orange/90 rounded-full text-[11px] uppercase tracking-widest shadow-sm";
+  const cardClasses = isSpecial ? "bg-white text-brand-dark" : "bg-white";
+  const titleClasses = "text-brand-dark";
+  const descriptionClasses = "text-gray-600";
+  const menuPriceClasses = "text-brand-red font-bold";
+  const quickAddBtnClasses = "bg-brand-red/5 text-brand-red border-brand-red/20 hover:bg-brand-red/10 disabled:bg-green-600 disabled:text-white disabled:border-green-500";
+  const personalizeBtnClasses = "bg-brand-red text-white hover:bg-brand-red/90 rounded-full text-[11px] uppercase tracking-widest shadow-sm";
 
-  const variantBtnClasses = isSpecial 
-    ? "bg-gray-300 hover:bg-gray-400 text-brand-dark" 
-    : "bg-gray-200 hover:bg-gray-300 text-brand-dark";
+  const variantBtnClasses = "bg-gray-100 hover:bg-gray-200 text-brand-dark";
 
   return (
     <div 
@@ -116,13 +110,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
       {isSpecial && (
         <>
             {/* TOP: Animates left-to-right */}
-            <span className="absolute top-0 left-0 h-[1px] w-0 bg-brand-dark transition-all duration-200 ease-linear group-hover:w-full" />
+            <span className="absolute top-0 left-0 h-[1px] w-0 bg-brand-red transition-all duration-200 ease-linear group-hover:w-full" />
             {/* RIGHT: Animates top-to-bottom */}
-            <span className="absolute top-0 right-0 w-[1px] h-0 bg-brand-dark transition-all duration-200 ease-linear delay-200 group-hover:h-full" />
+            <span className="absolute top-0 right-0 w-[1px] h-0 bg-brand-red transition-all duration-200 ease-linear delay-200 group-hover:h-full" />
             {/* BOTTOM: Animates right-to-left */}
-            <span className="absolute bottom-0 right-0 h-[1px] w-0 bg-brand-dark transition-all duration-200 ease-linear delay-[400ms] group-hover:w-full" />
+            <span className="absolute bottom-0 right-0 h-[1px] w-0 bg-brand-red transition-all duration-200 ease-linear delay-[400ms] group-hover:w-full" />
             {/* LEFT: Animates bottom-to-top */}
-            <span className="absolute bottom-0 left-0 w-[1px] h-0 bg-brand-dark transition-all duration-200 ease-linear delay-[600ms] group-hover:h-full" />
+            <span className="absolute bottom-0 left-0 w-[1px] h-0 bg-brand-red transition-all duration-200 ease-linear delay-[600ms] group-hover:h-full" />
         </>
       )}
       <div className={`relative overflow-hidden p-4 ${isAvailable ? 'cursor-pointer' : ''}`} onClick={() => isAvailable && onViewDetails(product)}>
@@ -139,7 +133,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
           )}
       </div>
       <div className="p-4 flex flex-col flex-grow">
-        <h3 className={`text-xl font-bold ${titleClasses}`}>{product.name}</h3>
+        <h3 className={`text-2xl font-bebas tracking-wide ${titleClasses}`}>{product.name}</h3>
         <p className={`mt-1 text-[14.5px] flex-grow ${descriptionClasses}`} dangerouslySetInnerHTML={{ __html: product.description }}></p>
         
         <div className="mt-auto pt-4">
@@ -156,24 +150,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${
                                 isAdded 
                                 ? 'bg-green-600 border-green-600 text-white' 
-                                : (isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20')
+                                : (isSpecial ? 'border-brand-red/30 hover:bg-brand-red/10 bg-white/50' : 'border-brand-red/20 hover:bg-brand-red/5 bg-gray-50')
                             } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                            <span className={`text-sm font-semibold flex items-center gap-1 ${isSpecial && !isAdded ? 'text-brand-dark' : 'text-white'}`}>
+                            <span className={`text-sm font-semibold flex items-center gap-1 ${isSpecial && !isAdded ? 'text-brand-red' : (isAdded ? 'text-white' : 'text-brand-dark')}`}>
                                 {isAdded && <CheckCircleIcon className="h-4 w-4 animate-pop" />}
                                 {isAdded ? 'Aggiunto!' : 'Solo Panino'}
                             </span>
-                            <span className={`${isAdded ? 'text-white/90' : 'text-brand-orange'} font-bold text-lg`}>€{product.price.toFixed(2)}</span>
+                            <span className={`${isAdded ? 'text-white/90' : 'text-brand-red'} font-bold text-lg`}>€{product.price.toFixed(2)}</span>
                         </button>
 
                         <button 
                             onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'menu', 'quick-menu'); }}
                             disabled={!isAvailable}
-                            className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-dark/30 hover:bg-brand-dark/10 bg-white/50' : 'border-brand-orange/50 hover:bg-brand-orange/20 bg-black/20'} disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden`}
+                            className={`flex-1 flex flex-col justify-center items-center p-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-red/30 hover:bg-brand-red/10 bg-white/50' : 'border-brand-red/20 hover:bg-brand-red/5 bg-gray-50'} disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden`}
                         >
-                            <span className={`text-sm font-semibold ${isSpecial ? 'text-brand-dark' : 'text-white'}`}>Menù</span>
-                            <span className="text-brand-orange font-bold text-lg">€{product.menuPrice!.toFixed(2)}</span>
-                            <span className={`text-[10px] leading-tight text-center mt-1 px-1 ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>+ patatine e bibita</span>
+                            <span className={`text-sm font-semibold ${isSpecial ? 'text-brand-red' : 'text-brand-dark'}`}>Menù</span>
+                            <span className="text-brand-red font-bold text-lg">€{product.menuPrice!.toFixed(2)}</span>
+                            <span className={`text-[10px] leading-tight text-center mt-1 px-1 text-gray-500`}>Panino + patatine + bibita</span>
                         </button>
                     </div>
                     {isCustomizable ? (
@@ -189,7 +183,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                         <button
                             onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product, 'panino', 'full-customize'); }}
                             disabled={!isAvailable}
-                            className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-dark/30 text-brand-dark/70 hover:bg-brand-dark hover:text-white' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`w-fit mx-auto px-4 py-1 text-[10px] uppercase tracking-wider rounded-full transition-all border flex items-center gap-1.5 ${isSpecial ? 'border-brand-red/30 text-brand-red/70 hover:bg-brand-red hover:text-white' : 'border-brand-red/20 text-gray-500 hover:border-brand-red hover:text-brand-red'} disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
                             <SettingsIcon className="h-3 w-3" />
                             <span>Personalizza</span>
@@ -201,16 +195,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                     <div className="mb-4">
                         <div className="flex justify-between items-center">
                             {product.variants && product.variants.length > 0 ? (
-                                <div className="text-brand-orange text-2xl font-semibold flex items-baseline gap-x-4">
+                                <div className="text-brand-red text-2xl font-semibold flex items-baseline gap-x-4">
                                     {product.variants.map((v) => (
                                         <div key={v.name}>
                                             <span>€{v.price.toFixed(2)}</span>
-                                            <span className={`text-sm ml-1 font-normal capitalize ${isSpecial ? 'text-gray-600' : 'text-gray-400'}`}>{v.name}</span>
+                                            <span className={`text-sm ml-1 font-normal capitalize text-gray-500`}>{v.name}</span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-brand-orange text-2xl font-semibold">
+                                <p className="text-brand-red text-2xl font-semibold">
                                     €{product.price.toFixed(2)}
                                 </p>
                             )}
@@ -226,7 +220,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                                         if (isAvailable && !isAdded) handleQuickAddDefault(); 
                                     }}
                                     disabled={!!isAdded || !isAvailable}
-                                    className={`flex-grow font-bold py-2.5 px-4 rounded-md transition-all duration-300 flex items-center justify-center gap-2 shadow-sm ${isAdded ? 'bg-green-600 text-white' : (isSpecial ? 'bg-brand-dark text-white' : 'bg-brand-orange text-white')} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    className={`flex-grow font-bold py-2.5 px-4 rounded-md transition-all duration-300 flex items-center justify-center gap-2 shadow-sm ${isAdded ? 'bg-green-600 text-white' : 'bg-brand-red text-white hover:bg-brand-red/90'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     {isAdded ? <CheckCircleIcon className="h-5 w-5" /> : <ShoppingCartIcon className="h-5 w-5" />}
                                     <span>{isAdded ? 'Aggiunto!' : 'Aggiungi'}</span>
@@ -234,7 +228,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                                 <button
                                     onClick={(e) => { e.stopPropagation(); isAvailable && onViewDetails(product); }}
                                     disabled={!isAvailable}
-                                    className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 h-11 rounded-md border transition-all duration-300 ${isSpecial ? 'border-brand-dark/30 text-brand-dark hover:bg-brand-dark/10' : 'border-white/20 text-gray-400 hover:border-brand-orange hover:text-brand-orange'} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                    className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 h-11 rounded-md border transition-all duration-300 ${isSpecial ? 'border-brand-red/30 text-brand-red hover:bg-brand-red/10' : 'border-brand-red/20 text-gray-500 hover:border-brand-red hover:text-brand-red'} disabled:opacity-50 disabled:cursor-not-allowed`}
                                 >
                                     <SettingsIcon className="h-4 w-4" />
                                     <span className="text-[10px] font-bold uppercase tracking-tight">Personalizza</span>
@@ -246,7 +240,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             {product.variants.map(variant => {
                                 const isSmall = variant.name === 'Small';
                                 const isVariantAdded = isAdded === variant.name;
-                                const sizeTextColor = isSmall ? 'text-gray-700' : 'text-black';
+                                const sizeTextColor = isSmall ? 'text-gray-600' : 'text-brand-dark';
 
                                 return (
                                     <button
@@ -286,7 +280,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             className={`w-fit mx-auto font-bold py-2 px-8 rounded-full transition-colors duration-300 flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
                                 isAdded && !isCustomizable 
                                 ? 'bg-green-600 text-white' 
-                                : (isCustomizable ? personalizeBtnClasses : 'bg-brand-orange text-white hover:bg-brand-orange/90')
+                                : (isCustomizable ? personalizeBtnClasses : 'bg-brand-red text-white hover:bg-brand-red/90')
                             } ${!isAvailable ? 'bg-gray-500' : ''}`}
                         >
                             {isAdded && !isCustomizable ? (

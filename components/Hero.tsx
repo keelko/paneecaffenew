@@ -112,14 +112,14 @@ const Hero: React.FC = () => {
             <p className="font-bold tracking-[0.2em] uppercase text-xs md:text-xl mt-2 animate-hero-subtitle-fade" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                 Laboratorio di Hamburger
             </p>
-            <div className="bg-brand-orange h-1 w-2/5 mt-4 mx-auto origin-left animate-hero-bar-animation"></div>
+            <div className="bg-brand-red h-1 w-2/5 mt-4 mx-auto origin-left animate-hero-bar-animation"></div>
         </div>
       </div>
       
       {/* Text Overlay for the second slide */}
       <div className={`absolute inset-0 flex flex-col items-center justify-center text-center text-brand-cream pointer-events-none transition-opacity duration-1000 ease-in-out ${currentIndex === (media.some(m => m.type === 'video') ? 1 : 0) ? 'opacity-100' : 'opacity-0'}`}>
           <div>
-              <div className="bg-brand-orange h-1 w-2/5 mb-4 mx-auto origin-left animate-hero-bar-animation" style={{ animationDuration: '11s' }}></div>
+              <div className="bg-brand-red h-1 w-2/5 mb-4 mx-auto origin-left animate-hero-bar-animation" style={{ animationDuration: '11s' }}></div>
               <h2 
                 className="font-brand text-3xl md:text-6xl tracking-wider shine-effect-once opacity-75" 
                 style={{ textShadow: '0 3px 6px rgba(0,0,0,0.6)' }}

@@ -11,29 +11,23 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ cartItemCount, onCartClick, onScrollToTop, isCartAnimating }) => {
   return (
-    <header className="bg-brand-dark/80 backdrop-blur-sm sticky top-0 z-40 shadow-lg shadow-black/20">
-      <div className="container mx-auto px-4 h-16 md:h-24 flex justify-between items-center">
+    <header className="bg-brand-cream/90 backdrop-blur-sm sticky top-0 z-40 shadow-sm border-b border-brand-red/10">
+      <div className="container mx-auto px-4 h-20 md:h-28 flex justify-between items-center">
         <div className="flex items-center">
-          <a href="https://www.panecaffe.info/" target="_blank" rel="noopener noreferrer" className="group" aria-label="Vai al sito ufficiale di Pane & Caffè">
-            <Logo className="h-12 w-12 md:h-20 md:w-20"/>
-          </a>
-          <button onClick={onScrollToTop} className="ml-4 group" aria-label="Torna in cima">
-            <div className="relative">
-                <span className="font-brand text-xl md:text-3xl tracking-wider text-brand-cream">PANE & CAFFÈ</span>
-                <div className="absolute -bottom-1 left-0 h-[2px] w-full bg-brand-orange origin-left transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 ease-out animate-pulse-underline"></div>
-            </div>
+          <button onClick={onScrollToTop} className="group" aria-label="Torna in cima">
+            <Logo className="h-16 md:h-[83px] w-auto"/>
           </button>
         </div>
         
         <div className="flex items-center gap-4">
           <button
             onClick={onCartClick}
-            className={`relative text-white hover:text-brand-orange transition-colors duration-300 p-2 rounded-full hover:bg-white/10 ${isCartAnimating ? 'animate-cart-jiggle-once' : ''}`}
+            className={`relative text-brand-dark hover:text-brand-red transition-colors duration-300 p-2 rounded-full hover:bg-brand-red/5 ${isCartAnimating ? 'animate-cart-jiggle-once' : ''}`}
             aria-label="Apri carrello"
           >
             <ShoppingCartIcon className="h-8 w-8 md:h-12 md:w-12" />
             {cartItemCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-brand-orange text-white text-xs md:text-sm font-bold rounded-full h-5 w-5 md:h-8 md:w-8 flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 bg-brand-red text-white text-xs md:text-sm font-bold rounded-full h-5 w-5 md:h-8 md:w-8 flex items-center justify-center animate-pulse">
                 {cartItemCount}
               </span>
             )}
