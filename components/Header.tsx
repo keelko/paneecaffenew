@@ -11,7 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ cartItemCount, onCartClick, onScrollToTop, isCartAnimating }) => {
   return (
-    <header className="bg-brand-cream/90 backdrop-blur-sm sticky top-0 z-40 shadow-sm border-b border-brand-red/10">
+    <header className="bg-brand-cream/90 backdrop-blur-sm sticky top-0 z-40 shadow-sm border-b border-brand-red/10 pt-[env(safe-area-inset-top)]">
       <div className="container mx-auto px-4 h-20 md:h-28 flex justify-between items-center">
         <div className="flex items-center">
           <button onClick={onScrollToTop} className="group" aria-label="Torna in cima">

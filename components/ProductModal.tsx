@@ -101,11 +101,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
     if (!product.ingredients) return [];
     const productIngredientsLower = product.ingredients.map(i => i.toLowerCase());
     return REMOVABLE_INGREDIENTS.filter(removable => 
-      productIngredientsLower.some(prodIng => prodIng.includes(removable))
+      productIngredientsLower.some(prodIng => prodIng.includes(removable.toLowerCase()))
     );
   }, [product.ingredients]);
 
   const availableExtras = useMemo(() => {
+    if (product.extras) {
+      return product.extras;
+    }
+
     let extras: Extra[] = [];
     
     if (product.category === 'chips') {
@@ -119,34 +123,22 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
         extras = [];
       }
     } else {
-      extras = [...EXTRAS_BURGER, ...EXTRAS_SAUCES];
+      extras = [...EXTRAS_BURGER];
     }
 
     if (product.category === 'box') {
-      const forbiddenExtras = ['Bacon', 'Doppio Cheddar', 'Cetriolini', 'Doppio Hamburger', 'Cipolla Caramellata'];
+      const forbiddenExtras = ['Bacon', 'Doppio Formaggio', 'Cetriolini', 'Doppio Hamburger', 'Cipolla Caramellata'];
       return extras.filter(extra => !forbiddenExtras.includes(extra.name));
     }
     
-    if (product.category === 'sandwich-pollo' || product.category === 'veggy') {
-      extras = extras.filter(e => e.name !== 'Doppio Hamburger');
-    }
-
-    if (product.category === 'veggy') {
-      extras = extras.filter(e => e.name !== 'Bacon');
+    if (product.category === 'sandwich-pollo') {
+      extras = extras.filter(extra => !EXTRAS_BURGER.some(be => be.name === extra.name));
     }
     
-    const productIngredientsLower = product.ingredients?.map(i => i.toLowerCase()) || [];
-    extras = extras.filter(extra => {
-      const extraLower = extra.name.toLowerCase();
-      if (['ketchup', 'maionese', 'barbecue'].includes(extraLower)) {
-        if (extraLower === 'barbecue') {
-          return !productIngredientsLower.some(ing => ing.includes('barbecue') || ing.includes('bbq'));
-        }
-        return !productIngredientsLower.some(ing => ing.includes(extraLower));
-      }
-      return true;
-    });
-
+    if (product.category === 'veggy') {
+      extras = extras.filter(e => e.name !== 'Doppio Hamburger' && e.name !== 'Bacon');
+    }
+    
     return extras;
   }, [product.category, product.ingredients]);
 
@@ -228,13 +220,13 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
   return (
     <Fragment>
       <div 
-        className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4"
+        className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4 pt-[calc(1rem+env(safe-area-inset-top))]"
       >
         <div 
-          className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[98vh] sm:max-h-[90vh] flex flex-col relative overflow-hidden"
+          className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[calc(100vh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex flex-col relative overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={`relative bg-gray-50 transition-all duration-300 ${variant === 'menu' ? 'p-1 sm:p-4' : 'p-2 sm:p-4'}`}>
+          <div className={`relative bg-white transition-all duration-300 ${variant === 'menu' ? 'p-1 sm:p-4' : 'p-2 sm:p-4'}`}>
             <button onClick={() => setIsImageZoomed(true)} className="w-full block" aria-label="Visualizza immagine ingrandita">
               <img 
                 src={gallery[currentImageIndex]} 
@@ -290,10 +282,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
 
             {hasMenuOption && mode !== 'quick-menu' && (
               <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-gray-100">
-                <button onClick={() => setVariant('panino')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'panino' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                <button onClick={() => setVariant('panino')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'panino' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-gray-200'}`}>
                   <BurgerIcon className="h-5 w-5" /> Panino
                 </button>
-                <button onClick={() => { setVariant('menu'); setHighlightDrink(false); setTimeout(() => setHighlightDrink(true), 10); }} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'menu' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                <button onClick={() => { setVariant('menu'); setHighlightDrink(false); setTimeout(() => setHighlightDrink(true), 10); }} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'menu' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-gray-200'}`}>
                   <MenuIcon className="h-5 w-5" /> Menù (+€{(product.menuPrice! - product.price).toFixed(2)})
                 </button>
               </div>
@@ -304,6 +296,26 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                 <h3 className="text-2xl font-bebas tracking-wide text-brand-dark -mb-2">
                   {product.category === 'chips' ? 'Personalizza Patatine' : 'Personalizza Panino'}
                 </h3>
+
+                {availableRemovableIngredients.length > 0 && (
+                  <details className="rounded-md border border-brand-red/10 overflow-hidden">
+                    <summary className="p-4 bg-gray-100 list-none cursor-pointer flex justify-between items-center group hover:bg-gray-200">
+                      <h3 className="text-xl font-bebas tracking-wide text-brand-red flex items-center gap-2"><MinusIcon className="h-5 w-5"/>Rimuovi Ingredienti</h3>
+                      <ChevronDownIcon className="h-5 w-5 text-gray-500 group-open:rotate-180 transition-transform"/>
+                    </summary>
+                    <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {availableRemovableIngredients.map(ingredient => (
+                        <button 
+                          key={ingredient} 
+                          onClick={() => handleToggleIngredient(ingredient)} 
+                          className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${removedIngredients.includes(ingredient) ? 'bg-brand-red border-brand-red text-white font-bold' : 'bg-white border-brand-red/10 hover:bg-brand-red/5'}`}
+                        >
+                          Senza {ingredient}
+                        </button>
+                      ))}
+                    </div>
+                  </details>
+                )}
 
                 {availableExtras.length > 0 && (
                   <details className="rounded-md border border-brand-red/10 overflow-hidden" open>
@@ -341,7 +353,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                                 <button 
                                     key={drink.id} 
                                     onClick={() => setSelectedDrinkId(drink.id)} 
-                                    className={`relative flex items-center justify-center p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-all border group overflow-hidden ${selectedDrinkId === drink.id ? 'bg-brand-red border-brand-red shadow-lg scale-[1.02]' : 'bg-white border-brand-red/10 hover:border-brand-red/30 hover:bg-brand-red/5'}`}
+                                    className={`relative flex items-center justify-center p-1.5 sm:p-3 rounded-lg sm:rounded-xl transition-all border group overflow-hidden ${selectedDrinkId === drink.id ? 'bg-brand-red border-brand-red shadow-lg scale-[1.02]' : 'bg-white border-brand-red/10 hover:border-brand-red/30 hover:bg-gray-100'}`}
                                 >
                                     <span className={`text-[9px] sm:text-xs text-center font-bold uppercase tracking-tight relative z-10 ${selectedDrinkId === drink.id ? 'text-white' : 'text-gray-600'}`}>
                                         {drink.name}
@@ -367,7 +379,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               </div>
             )}
           </div>
-          <div className="p-4 sm:p-6 mt-auto border-t border-brand-red/10 bg-gray-100 rounded-b-lg">
+          <div className="p-4 sm:p-6 pb-[calc(1rem+env(safe-area-inset-bottom))] mt-auto border-t border-brand-red/10 bg-gray-100 rounded-b-lg">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
               <QuantitySelector quantity={quantity} onQuantityChange={setQuantity} disabled={isAddedToCart} />
               <button 

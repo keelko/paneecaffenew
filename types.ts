@@ -20,6 +20,7 @@ export interface Product {
   imageFit?: 'cover' | 'contain';
   variants?: ProductVariant[];
   availableDays?: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  extras?: Extra[];
 }
 
 export type CartItemVariant = 'panino' | 'menu';

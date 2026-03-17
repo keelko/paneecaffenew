@@ -226,23 +226,10 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     if (navigator.geolocation) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
           const link = `https://www.google.com/maps?q=${latitude},${longitude}`;
           setMapsLink(link);
-          
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&email=downloandroid@gmail.com`);
-            const data = await res.json();
-            if (data && data.address) {
-                setCity(data.address.town || data.address.city || data.address.village || 'Ariano Irpino');
-                setStreet(data.address.road || '');
-                setHouseNumber(data.address.house_number || '');
-            }
-          } catch (e) {
-            console.error("Reverse geocoding failed", e);
-          }
-
           setIsLocating(false);
         },
         (error) => {
@@ -280,9 +267,9 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
             return detail;
         }).join(' / ');
 
-        const addressText = `${street}, ${houseNumber}, ${city}`;
+        const addressText = mapsLink ? "Posizione GPS condivisa" : `${street}, ${houseNumber}, ${city}`;
         const finalMapsLink = mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}`;
-        const fullAddress = `${addressText}\nLink Maps: ${finalMapsLink}`;
+        const fullAddress = mapsLink ? `Link Maps: ${finalMapsLink}` : `${addressText}\nLink Maps: ${finalMapsLink}`;
         
         const payload = {
             customerName: customerName.trim(),
@@ -363,9 +350,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     message += `*TOTALE:* *€${finalTotalPrice.toFixed(2)}*\n\n`;
     
     if (deliveryType === 'delivery') {
-        const addressText = `${street}, ${houseNumber}, ${city}`;
-        const finalMapsLink = mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}`;
-        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${addressText}\n🔗 *Apri in Maps:* ${finalMapsLink}\n\n`;
+        if (mapsLink) {
+            message += `📍 *INDIRIZZO DI CONSEGNA:*\n🔗 *Apri in Maps:* ${mapsLink}\n\n`;
+        } else {
+            const addressText = `${street}, ${houseNumber}, ${city}`;
+            const finalMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}`;
+            message += `📍 *INDIRIZZO DI CONSEGNA:*\n${addressText}\n🔗 *Apri in Maps:* ${finalMapsLink}\n\n`;
+        }
     } else {
         message += `🏠 *INDIRIZZO DI RITIRO:*\n${RESTAURANT_ADDRESS}\n\n`;
     }
@@ -409,7 +400,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const handleProceedToConfirmation = () => {
     const isNameValid = customerName.trim() !== '';
     const isPhoneValid = phoneNumber.trim() !== '';
-    const isAddressValid = deliveryType === 'pickup' || (street.trim() !== '' && houseNumber.trim() !== '' && city.trim() !== '');
+    const isAddressValid = deliveryType === 'pickup' || mapsLink !== '' || (street.trim() !== '' && houseNumber.trim() !== '' && city.trim() !== '');
 
     setNameError(!isNameValid);
     setPhoneError(!isPhoneValid);
@@ -496,7 +487,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
           )}
         </div>
         {cartItems.length > 0 && (
-            <div className="p-4 border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
+            <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
                  <div className="space-y-2 text-lg">
                     <div className="flex justify-between items-center font-bold text-xl text-brand-dark">
                         <span>Totale</span>
@@ -602,6 +593,23 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               {deliveryType === 'delivery' && (
                 <div className="pt-2 border-t border-brand-red/10">
                   <h3 className="text-lg font-bold text-brand-dark mb-3">Indirizzo di Consegna</h3>
+                  {mapsLink && (
+                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-3 animate-pop">
+                      <div className="bg-green-500 rounded-full p-1">
+                        <CheckCircleIcon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-grow">
+                        <p className="text-sm font-bold text-green-800">Posizione GPS acquisita!</p>
+                        <p className="text-xs text-green-700">Verrà inviato il link Google Maps nel messaggio.</p>
+                      </div>
+                      <button 
+                        onClick={() => setMapsLink('')}
+                        className="text-xs text-red-600 hover:underline font-medium"
+                      >
+                        Rimuovi
+                      </button>
+                    </div>
+                  )}
                   <AddressInput 
                     city={city}
                     setCity={(val) => { setCity(val); if(addressError) setAddressError(false); }}
@@ -611,12 +619,13 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                     setHouseNumber={(val) => { setHouseNumber(val); if(addressError) setAddressError(false); }}
                     onGetLocation={handleGetLocation}
                     isLocating={isLocating}
+                    hasLocation={!!mapsLink}
                     showError={addressError}
                   />
                 </div>
               )}
         </div>
-        <div className="p-4 border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
+        <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
              <div className="space-y-1 mb-4 text-lg">
                 <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotale</span>
@@ -696,8 +705,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   );
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center p-4 border-b border-brand-red/10">
           <h2 className="text-3xl font-bebas tracking-wide text-brand-dark">
             {step === 1 && 'Riepilogo Ordine'}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="https://i.imgur.com/emHh9op.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- SEO Meta Tags -->
     <title>Pane & Caffè Ariano Irpino | Ordina Online Hamburger e Panini</title>
@@ -112,6 +112,15 @@
         }
         body {
             font-family: 'Poppins', sans-serif;
+            padding-top: env(safe-area-inset-top);
+        }
+        /* Fix iOS Chrome/Safari autofill background */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px white inset !important;
+            -webkit-text-fill-color: #1a1a1a !important;
         }
         .font-brand {
             font-family: 'Oswald', sans-serif;

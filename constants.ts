@@ -4,12 +4,16 @@ export const RESTAURANT_ADDRESS = "Via Pasquale Stanislao Mancini 13, 83031 Aria
 
 export const DELIVERY_FEE = 3;
 
-export const REMOVABLE_INGREDIENTS = ['formaggio', 'bacon', 'insalata', 'pomodoro', 'cipolla', 'cetrioli', 'maionese', 'bbq'];
+export const REMOVABLE_INGREDIENTS = [
+    'Formaggio', 'Bacon', 'Insalata', 'Pomodoro', 'Cipolla', 'Cetriolini', 
+    'Maionese', 'Barbecue', 'Ketchup', "Salsa Cane's", 'Salsa allo yogurt', 
+    'Sweet chili', 'Provola panata e fritta', 'Salsa crispy'
+];
 
 export const EXTRAS_BURGER: Extra[] = [
     { name: 'Bacon', price: 1 },
     { name: 'Cetriolini', price: 1 },
-    { name: 'Doppio Cheddar', price: 1 },
+    { name: 'Doppio Formaggio', price: 1 },
     { name: 'Cipolla Caramellata', price: 1 },
     { name: 'Doppio Hamburger', price: 4 },
 ];
@@ -75,69 +79,112 @@ export const PRODUCTS: Product[] = [
     id: 1, name: "Classico", price: 8, menuPrice: 13, category: 'hamburger',
     description: "Bun artigianale, hamburger di manzo, provola, bacon, insalata, pomodoro.",
     image: "https://i.imgur.com/NTNB4nA.png",
-    ingredients: ["Hamburger di Manzo", "Provola", "Bacon", "Insalata", "Pomodoro"],
+    ingredients: ["Hamburger di Manzo", "Provola (formaggio)", "Bacon", "Insalata", "Pomodoro"],
   },
   {
     id: 2, name: "Cheeseburger", price: 8, menuPrice: 13, category: 'hamburger',
     description: "Bun artigianale, hamburger di manzo, cheddar, bacon, cipolla caramellata, insalata, pomodoro.",
     image: "https://i.imgur.com/dBxcKRn.png",
-    ingredients: ["Hamburger di Manzo", "Cheddar", "Bacon", "Cipolla caramellata", "Insalata", "Pomodoro"],
+    ingredients: ["Hamburger di Manzo", "Cheddar (formaggio)", "Bacon", "Cipolla caramellata", "Insalata", "Pomodoro"],
   },
   {
     id: 15, name: "Junior", price: 8, menuPrice: 13, category: 'hamburger',
     description: "Bun artigianale, hamburger di manzo, cheddar, bacon, patatine fritte, ketchup o maionese.",
     image: "https://i.imgur.com/ZFJvFgl.png",
-    ingredients: ["Hamburger di manzo", "Cheddar", "Bacon", "Patatine fritte", "Ketchup o maionese"],
+    ingredients: ["Hamburger di manzo", "Cheddar (formaggio)", "Bacon", "Patatine fritte", "Ketchup", "Maionese"],
   },
   {
     id: 3, name: "Signore degli Anelli", price: 8, menuPrice: 13, category: 'hamburger',
     description: "Bun artigianale, hamburger di manzo, provola, bacon, anelli di cipolla, maionese, salsa BBQ.",
     image: "https://i.imgur.com/Ln0KyPk.png",
-    ingredients: ["Hamburger di Manzo", "Provola", "Bacon", "Anelli di Cipolla", "Maionese", "Salsa BBQ"],
+    ingredients: ["Hamburger di Manzo", "Provola (formaggio)", "Bacon", "Anelli di Cipolla", "Maionese", "Barbecue (Salsa BBQ)"],
   },
   {
     id: 5, name: "Smash American", price: 10, menuPrice: 15, category: 'hamburger',
     description: "Potato bun, doppio smashburger da 90g, cheddar, bacon, salsa Cane’s, cetriolini.",
     image: "https://i.imgur.com/XSdus29.png",
-    ingredients: ["Doppio Smashburger 90g", "Cheddar", "Bacon", "Salsa Cane's", "Cetriolini"],
+    ingredients: ["Doppio Smashburger 90g", "Cheddar (formaggio)", "Bacon", "Salsa Cane's", "Cetriolini"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Doppio Formaggio', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+      { name: 'Triplo Smash', price: 3 },
+    ]
   },
   {
     id: 100, name: "St. Jhon", price: 13, menuPrice: 18, category: 'hamburger',
     description: "Potato bun, doppio smashburger da 90g, pulled pork, cheddar, bacon jam, salsa BBQ, cipolla crispy.",
     image: "https://i.imgur.com/7LEZf88.png",
-    ingredients: ["Doppio smashburger 90g", "Pulled pork", "Cheddar", "Bacon jam", "Salsa BBQ", "Cipolla crispy"],
+    ingredients: ["Doppio smashburger 90g", "Pulled pork", "Cheddar (formaggio)", "Bacon jam", "Barbecue (Salsa BBQ)", "Cipolla crispy"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Doppio Formaggio', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+      { name: 'Triplo Smash', price: 3 },
+    ]
   },
   {
     id: 101, name: "Jam", price: 13, menuPrice: 18, category: 'hamburger',
     description: "Potato bun, triplo smashburger da 90g, cheddar, bacon jam, bacon, salsa crispy.",
     image: "https://i.imgur.com/oPflcjL.png",
-    ingredients: ["Triplo smashburger 90g", "Cheddar", "Bacon jam", "Bacon", "Salsa crispy"],
+    ingredients: ["Triplo smashburger 90g", "Cheddar (formaggio)", "Bacon jam", "Bacon", "Salsa crispy"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Doppio Formaggio', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+      { name: '4 Smashburger', price: 3 },
+    ]
   },
   {
     id: 8, name: "Big Pork", price: 10, menuPrice: 15, category: 'hamburger',
     description: "Bun artigianale, pulled pork, cheddar, bacon, salsa BBQ.",
     image: "https://i.imgur.com/TDaq7KQ.png",
-    ingredients: ["Pulled pork", "Cheddar", "Bacon", "Salsa BBQ"],
+    ingredients: ["Pulled pork", "Cheddar (formaggio)", "Bacon", "Salsa BBQ"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Doppio Formaggio', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+    ]
   },
 
   // Sandwiches di Pollo
   {
     id: 10, name: "Pec Chicken", price: 8, menuPrice: 13, category: 'sandwich-pollo',
-    description: "Bun artigianale, petto di pollo panato e fritto, provola, bacon, insalata.",
+    description: "Bun artigianale, petto di pollo panato e fritto, provola, bacon, insalata, maionese.",
     image: "https://i.imgur.com/qeA4Ysk.png",
-    ingredients: ["Petto di pollo panato", "Provola", "Bacon", "Insalata"],
+    ingredients: ["Petto di pollo panato", "Provola (formaggio)", "Bacon", "Insalata", "Maionese"],
+    extras: [
+      { name: 'Doppio Formaggio', price: 1 },
+      { name: 'Doppio Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+    ]
   },
   {
     id: 11, name: "Chicken Crunch", price: 10, menuPrice: 15, category: 'sandwich-pollo',
     description: "Bun artigianale, pollo alla paprika pastellato e fritto, insalata, stealth fries, salsa allo yogurt.",
     image: "https://i.imgur.com/2g1VfUs.png",
     ingredients: ["Pollo alla paprika", "Insalata", "Stealth fries", "Salsa allo yogurt"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+    ]
   },
   {
     id: 12, name: "Pol - Corn", price: 10, menuPrice: 15, category: 'sandwich-pollo',
     description: "Bun artigianale, pollo impanato nei corn flakes, salsa yogurt, pomodoro, insalata, salsa sweet chili.",
     image: "https://i.imgur.com/f9xIWeo.png",
-    ingredients: ["Pollo impanato nei corn flakes", "Salsa yogurt", "Pomodoro", "Insalata", "Salsa sweet chili"],
+    ingredients: ["Pollo impanato nei corn flakes", "Salsa yogurt (Salsa allo yogurt)", "Pomodoro", "Insalata", "Sweet chili (Salsa sweet chili)"],
+    extras: [
+      { name: 'Bacon', price: 1 },
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+    ]
   },
 
   // Vegetariano
@@ -146,6 +193,11 @@ export const PRODUCTS: Product[] = [
     description: "Bun artigianale, funghi cardoncelli alla piastra, provola panata e fritta, patata smashata, crema di funghi, maionese.",
     image: "https://i.imgur.com/7bt9j84.png",
     ingredients: ["Funghi cardoncelli", "Provola panata e fritta", "Patata smashata", "Crema di funghi", "Maionese"],
+    extras: [
+      { name: 'Cetriolini', price: 1 },
+      { name: 'Cipolla Caramellata', price: 1 },
+      { name: 'Doppia provola panata e fritta', price: 3 },
+    ]
   },
 
   // Chips
@@ -156,12 +208,12 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 17, name: "Patate Bacon e Cheddar", price: 6, category: 'chips',
-    description: "Patatine fritte con bacon croccante e cheddar fuso. Includono salse in bustina (Ketchup, Maionese, BBQ).",
+    description: "Patatine fritte con bacon croccante e cheddar fuso.",
     image: "https://i.imgur.com/yJfSjf8.png",
   },
   {
     id: 18, name: "Patate Pulled Pork e Cheddar", price: 8, category: 'chips',
-    description: "Patatine fritte con pulled pork, cheddar fuso e salsa bbq. Includono salse in bustina.",
+    description: "Patatine fritte con pulled pork, cheddar fuso e salsa bbq.",
     image: "https://i.imgur.com/e6SUn5a.png",
   },
 
@@ -212,7 +264,7 @@ export const PRODUCTS: Product[] = [
     name: "Salsa Cane's", 
     price: 1, 
     description: "La nostra salsa speciale.", 
-    image: "https://i.imgur.com/DSgrypZ.png", 
+    image: "https://i.imgur.com/Id8MzVU.png", 
     category: 'salse',
     variants: [
       { name: 'Small', price: 1 },
@@ -224,7 +276,7 @@ export const PRODUCTS: Product[] = [
     name: "Salsa Crispy", 
     price: 1, 
     description: "Salsa per un tocco croccante.", 
-    image: "https://i.imgur.com/ODZXJfw.png", 
+    image: "https://i.imgur.com/EM4Gdw4.png", 
     category: 'salse',
     variants: [
       { name: 'Small', price: 1 },
@@ -236,7 +288,7 @@ export const PRODUCTS: Product[] = [
     name: "Salsa Cheddar", 
     price: 1.5, 
     description: "Salsa al formaggio cheddar, perfetta per patatine e panini.", 
-    image: "https://i.imgur.com/VQiNmK2.png", 
+    image: "https://i.imgur.com/laWPdr5.png", 
     category: 'salse',
     variants: [
       { name: 'Small', price: 1.5 },

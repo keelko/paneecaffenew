@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import LocationMarkerIcon from './icons/LocationMarkerIcon';
+import CheckCircleIcon from './icons/CheckCircleIcon';
 import arianoIrpinoStreets from './ariano_irpino_streets.json';
 
 interface AddressInputProps {
@@ -11,11 +12,12 @@ interface AddressInputProps {
   setHouseNumber: (val: string) => void;
   onGetLocation: () => void;
   isLocating: boolean;
+  hasLocation: boolean;
   showError?: boolean;
 }
 
 const AddressInput: React.FC<AddressInputProps> = ({
-  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating, showError
+  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating, hasLocation, showError
 }) => {
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
   const [isSearchingStreet, setIsSearchingStreet] = useState(false);
@@ -75,11 +77,17 @@ const AddressInput: React.FC<AddressInputProps> = ({
         <button 
           onClick={onGetLocation} 
           disabled={isLocating} 
-          className={`w-full p-3 bg-brand-red text-white font-semibold rounded-md hover:bg-red-700 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-all ${showError && !street && !houseNumber ? 'animate-flash-error' : ''}`}
+          className={`w-full p-3 ${hasLocation ? 'bg-green-600' : 'bg-brand-red'} text-white font-semibold rounded-md hover:opacity-90 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-all ${showError && !street && !houseNumber && !hasLocation ? 'animate-flash-error' : ''}`}
           aria-label="Rileva posizione GPS"
         >
-          {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className={`h-5 w-5 ${showError && !street && !houseNumber ? 'animate-flash-error animate-bounce' : ''}`}/>}
-          Usa la mia posizione attuale
+          {isLocating ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+          ) : hasLocation ? (
+            <CheckCircleIcon className="h-5 w-5 animate-pop" />
+          ) : (
+            <LocationMarkerIcon className={`h-5 w-5 ${showError && !street && !houseNumber && !hasLocation ? 'animate-flash-error animate-bounce' : ''}`}/>
+          )}
+          {hasLocation ? 'Posizione GPS Acquisita' : 'Usa la mia posizione attuale'}
         </button>
         <div className="flex items-center gap-2 text-sm text-gray-500 my-1">
             <div className="flex-1 border-b border-gray-200"></div>
@@ -95,7 +103,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           type="text" 
           value={city} 
           onChange={e => setCity(e.target.value)} 
-          className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !city ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
+          className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none ${showError && !city ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
           placeholder="Es. Ariano Irpino" 
         />
       </div>
@@ -118,7 +126,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
                 suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }, 300);
             }}
-            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !street ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
+            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none ${showError && !street ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
             placeholder="Es. Via Roma" 
             autoComplete="off"
           />
@@ -149,7 +157,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
             type="text" 
             value={houseNumber} 
             onChange={e => setHouseNumber(e.target.value)} 
-            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !houseNumber ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
+            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none ${showError && !houseNumber ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
             placeholder="Es. 12" 
           />
         </div>
