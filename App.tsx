@@ -377,7 +377,7 @@ const App: React.FC = () => {
       />
       <main>
         {!isSearchActive && <Hero />}
-        <div id="category-nav-container" className="sticky top-20 md:top-28 z-30 bg-brand-cream/90 backdrop-blur-sm shadow-sm border-b border-brand-red/10">
+        <div id="category-nav-container" className="sticky top-[calc(5rem+env(safe-area-inset-top))] md:top-[calc(7rem+env(safe-area-inset-top))] z-30 bg-brand-cream/90 backdrop-blur-sm shadow-sm border-b border-brand-red/10">
             <CategoryNav
                 categories={orderedCategories}
                 activeCategory={activeCategory}
