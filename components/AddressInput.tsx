@@ -70,7 +70,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   return (
-    <div className={`space-y-3 transition-all duration-300 ${showSuggestions && street.length >= 1 ? 'pb-64' : ''}`}>
+    <div className={`space-y-3 transition-all duration-300 relative ${showSuggestions && street.length >= 1 ? 'pb-64 z-30' : 'z-0'}`}>
       <div className="flex flex-col gap-2">
         <button 
           onClick={onGetLocation} 
@@ -78,7 +78,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           className={`w-full p-3 bg-brand-red text-white font-semibold rounded-md hover:bg-red-700 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-all ${showError && !street && !houseNumber ? 'animate-flash-error' : ''}`}
           aria-label="Rileva posizione GPS"
         >
-          {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className={`h-5 w-5 ${showError && !street && !houseNumber ? 'animate-bounce' : ''}`}/>}
+          {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className={`h-5 w-5 ${showError && !street && !houseNumber ? 'animate-flash-error animate-bounce' : ''}`}/>}
           Usa la mia posizione attuale
         </button>
         <div className="flex items-center gap-2 text-sm text-gray-500 my-1">
@@ -115,7 +115,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
               setShowSuggestions(true);
               // Scroll into view with a small delay to account for keyboard appearance
               setTimeout(() => {
-                suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }, 300);
             }}
             className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !street ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
@@ -123,7 +123,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
             autoComplete="off"
           />
           {showSuggestions && street.length >= 1 && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+            <div className="absolute z-[100] w-full mt-1 bg-white border-2 border-brand-red/20 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
               {isSearchingStreet ? (
                 <div className="p-2 text-sm text-gray-500 text-center">Ricerca in corso...</div>
               ) : streetSuggestions.length > 0 ? (

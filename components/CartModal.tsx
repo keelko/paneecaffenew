@@ -455,8 +455,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   if (!isOpen) return null;
 
   const renderSummaryStep = () => (
-    <>
-      <div className="p-4 flex-grow overflow-y-auto scrollbar-hide">
+    <div className="flex-grow overflow-y-auto scrollbar-hide relative flex flex-col bg-white">
+      <div className="p-4 flex-grow">
           {cartItems.length === 0 ? (
             <p className="text-gray-400 text-center py-8">Il carrello è vuoto.</p>
           ) : (
@@ -493,7 +493,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
           )}
         </div>
         {cartItems.length > 0 && (
-            <div className="p-4 border-t border-brand-red/10 bg-brand-red/5">
+            <div className="p-4 border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
                  <div className="space-y-2 text-lg">
                     <div className="flex justify-between items-center font-bold text-xl text-brand-dark">
                         <span>Totale</span>
@@ -509,15 +509,15 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                 </button>
             </div>
         )}
-    </>
+    </div>
   );
 
   const renderDetailsStep = () => (
-    <>
-        <div className="p-4 flex-grow overflow-y-auto scrollbar-hide space-y-4">
+    <div className="flex-grow overflow-y-auto scrollbar-hide relative flex flex-col bg-white">
+        <div className="p-4 flex-grow space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Modalità di Ritiro</label>
-                <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-brand-red/5">
+                <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-gray-100">
                     <button onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                       <PickupIcon className="h-5 w-5"/> Ritiro in Sede
                     </button>
@@ -527,7 +527,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                 </div>
               </div>
               {deliveryType === 'pickup' && (
-                  <div className="text-center bg-brand-red/5 p-3 rounded-md">
+                  <div className="text-center bg-gray-100 p-3 rounded-md">
                       <p className="text-sm font-semibold text-brand-dark">Indirizzo per il ritiro:</p>
                       <p className="text-xs text-gray-600">{RESTAURANT_ADDRESS}</p>
                   </div>
@@ -543,7 +543,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                             setCustomerName(e.target.value);
                             if (nameError) setNameError(false);
                         }} 
-                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${nameError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
+                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${nameError ? 'border-red-500 ring-2 ring-red-500/50 animate-flash-error' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
                         placeholder="Mario Rossi" />
                       {nameError && <p className="text-red-600 text-sm mt-1">Per favore, inserisci nome e cognome.</p>}
                   </div>
@@ -557,7 +557,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                             setPhoneNumber(e.target.value);
                             if (phoneError) setPhoneError(false);
                         }} 
-                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${phoneError ? 'border-red-500 ring-2 ring-red-500/50' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
+                        className={`w-full bg-white text-brand-dark border rounded-md p-2 outline-none transition-all ${phoneError ? 'border-red-500 ring-2 ring-red-500/50 animate-flash-error' : 'border-brand-red/10 focus:ring-2 focus:ring-brand-red'}`}
                         placeholder="3331234567" />
                       {phoneError && <p className="text-red-600 text-sm mt-1">Per favore, inserisci un numero.</p>}
                   </div>
@@ -613,7 +613,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                 </div>
               )}
         </div>
-        <div className="p-4 border-t border-brand-red/10 bg-brand-red/5">
+        <div className="p-4 border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
              <div className="space-y-1 mb-4 text-lg">
                 <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotale</span>
@@ -643,7 +643,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                 </button>
             </div>
           </div>
-    </>
+    </div>
   );
 
   const renderSuccessStep = () => (
@@ -693,8 +693,8 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-center">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-center p-4 border-b border-brand-red/10">
           <h2 className="text-3xl font-bebas tracking-wide text-brand-dark">
             {step === 1 && 'Riepilogo Ordine'}

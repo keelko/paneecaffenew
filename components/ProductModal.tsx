@@ -228,7 +228,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
   return (
     <Fragment>
       <div 
-        className="fixed inset-0 bg-black bg-opacity-80 z-50 flex justify-center items-center p-4"
+        className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4"
       >
         <div 
           className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[98vh] sm:max-h-[90vh] flex flex-col relative overflow-hidden"
@@ -289,7 +289,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
             )}
 
             {hasMenuOption && mode !== 'quick-menu' && (
-              <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-brand-red/5">
+              <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-gray-100">
                 <button onClick={() => setVariant('panino')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${variant === 'panino' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                   <BurgerIcon className="h-5 w-5" /> Panino
                 </button>
@@ -307,7 +307,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
 
                 {availableExtras.length > 0 && (
                   <details className="rounded-md border border-brand-red/10 overflow-hidden" open>
-                        <summary className="p-4 bg-brand-red/5 list-none cursor-pointer flex justify-between items-center group hover:bg-brand-red/10">
+                        <summary className="p-4 bg-gray-100 list-none cursor-pointer flex justify-between items-center group hover:bg-gray-200">
                             <h3 className="text-xl font-bebas tracking-wide text-green-700 flex items-center gap-2"><SparklesIcon className="h-5 w-5"/>Aggiungi Extra</h3>
                             <ChevronDownIcon className="h-5 w-5 text-gray-500 group-open:rotate-180 transition-transform"/>
                         </summary>
@@ -331,7 +331,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               <div className="space-y-4">
                   {showFrySauceSelector && renderFrySauceSelector()}
                   {showDrinkSelector && (
-                    <div ref={drinkSectionRef} className={`p-2 sm:p-4 bg-brand-red/5 rounded-md border transition-all duration-300 ${highlightDrink ? 'animate-drink-highlight' : 'border-brand-red/10'}`}>
+                    <div ref={drinkSectionRef} className={`p-2 sm:p-4 bg-gray-100 rounded-md border transition-all duration-300 ${highlightDrink ? 'animate-drink-highlight' : 'border-brand-red/10'}`}>
                         <h3 className="text-xl sm:text-2xl font-bebas tracking-wide text-brand-dark mb-1.5 sm:mb-3 flex items-center gap-2">
                             <DrinkIcon className="h-4 w-4 sm:h-6 sm:w-6 text-brand-red"/> 
                             Scegli la Bibita
@@ -367,7 +367,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
               </div>
             )}
           </div>
-          <div className="p-4 sm:p-6 mt-auto border-t border-brand-red/10 bg-brand-red/5 rounded-b-lg">
+          <div className="p-4 sm:p-6 mt-auto border-t border-brand-red/10 bg-gray-100 rounded-b-lg">
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
               <QuantitySelector quantity={quantity} onQuantityChange={setQuantity} disabled={isAddedToCart} />
               <button 
