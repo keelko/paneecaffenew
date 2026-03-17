@@ -69,7 +69,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 transition-all duration-300 ${showSuggestions && street.length >= 1 ? 'pb-40' : ''}`}>
       <div className="flex flex-col gap-2">
         <button 
           onClick={onGetLocation} 
@@ -110,7 +110,13 @@ const AddressInput: React.FC<AddressInputProps> = ({
               setStreet(e.target.value);
               setShowSuggestions(true);
             }} 
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={() => {
+              setShowSuggestions(true);
+              // Scroll into view with a small delay to account for keyboard appearance
+              setTimeout(() => {
+                suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 300);
+            }}
             className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none" 
             placeholder="Es. Via Roma" 
             autoComplete="off"
