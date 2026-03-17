@@ -271,7 +271,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
           <div className={`overflow-y-auto scrollbar-hide space-y-2 sm:space-y-4 ${variant === 'menu' ? 'p-2 sm:p-6' : 'p-3 sm:p-6'}`}>
             <h2 className={`font-bebas tracking-wide text-brand-dark leading-tight ${variant === 'menu' ? 'text-2xl sm:text-4xl' : 'text-3xl sm:text-4xl'}`}>{product.name}</h2>
             <div className="flex items-baseline gap-2 sm:gap-3">
-                <p className="text-brand-red text-lg sm:text-2xl font-semibold">€{currentPrice.toFixed(2)}</p>
+                <p className="text-brand-red text-[20px] sm:text-[26px] font-semibold">€{currentPrice.toFixed(2)}</p>
                 {variant === 'menu' && (
                     <p className="text-[9px] sm:text-sm text-brand-red animate-fade-in leading-tight font-medium">Panino + patatine + bibita</p>
                 )}
@@ -308,9 +308,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                         <button 
                           key={ingredient} 
                           onClick={() => handleToggleIngredient(ingredient)} 
-                          className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${removedIngredients.includes(ingredient) ? 'bg-brand-red border-brand-red text-white font-bold' : 'bg-white border-brand-red/10 hover:bg-brand-red/5'}`}
+                          className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${removedIngredients.includes(ingredient) ? 'bg-red-600 border-red-600 text-white font-bold' : 'bg-white border-brand-red/10 hover:bg-brand-red/5'}`}
                         >
-                          Senza {ingredient}
+                          <span className={removedIngredients.includes(ingredient) ? 'line-through' : ''}>Senza {ingredient}</span>
                         </button>
                       ))}
                     </div>
@@ -328,7 +328,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
                                 <button 
                                   key={extra.name} 
                                   onClick={() => handleToggleExtra(extra)} 
-                                  className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${addedExtras.some(e => e.name === extra.name) ? 'bg-brand-red border-brand-red text-white font-bold' : 'bg-white border-brand-red/10 hover:bg-brand-red/5'}`}
+                                  className={`p-2.5 rounded-md text-[14.5px] sm:text-sm border transition-all ${addedExtras.some(e => e.name === extra.name) ? 'bg-green-600 border-green-600 text-white font-bold' : 'bg-white border-brand-red/10 hover:bg-brand-red/5'}`}
                                 >
                                     {extra.name} (+€{extra.price.toFixed(2)})
                                 </button>

@@ -236,6 +236,11 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
           console.error("Error getting location: ", error);
           alert("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
           setIsLocating(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } else {
@@ -400,7 +405,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const handleProceedToConfirmation = () => {
     const isNameValid = customerName.trim() !== '';
     const isPhoneValid = phoneNumber.trim() !== '';
-    const isAddressValid = deliveryType === 'pickup' || mapsLink !== '' || (street.trim() !== '' && houseNumber.trim() !== '' && city.trim() !== '');
+    const isAddressValid = deliveryType === 'pickup' || mapsLink !== '' || (street.trim() !== '' && city.trim() !== '');
 
     setNameError(!isNameValid);
     setPhoneError(!isPhoneValid);

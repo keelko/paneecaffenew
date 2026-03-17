@@ -54,7 +54,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
 
 
     return (
-        <nav className="border-b border-brand-red/10">
+        <nav className="">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between">
                     <div 

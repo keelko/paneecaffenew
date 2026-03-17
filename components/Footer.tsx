@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
         </div>
         <div className="border-t border-brand-red/10 pt-4 mt-4">
             <p>&copy; {new Date().getFullYear()} Pane & Caffè. Tutti i diritti riservati.</p>
-            <p className="text-sm mt-2">Sviluppato da VinCam</p>
+            <p className="text-sm mt-2">Sviluppato da <a href="https://bit.ly/4bfxN3d" target="_blank" rel="noopener noreferrer" className="hover:text-brand-red transition-colors">VinCam</a></p>
         </div>
       </div>
     </footer>

@@ -151,14 +151,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
           )}
         </div>
         <div className="col-span-1">
-          <label htmlFor="houseNumber" className="block text-sm font-medium text-gray-600 mb-1">Civico</label>
+          <label htmlFor="houseNumber" className="block text-sm font-medium text-gray-600 mb-1">Civico <span className="text-[10px] opacity-70">(opzionale)</span></label>
           <input 
             id="houseNumber" 
             type="text" 
             value={houseNumber} 
             onChange={e => setHouseNumber(e.target.value)} 
-            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none ${showError && !houseNumber ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
-            placeholder="Es. 12" 
+            className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none" 
+            placeholder="Es. 12 (consigliato)" 
           />
         </div>
       </div>

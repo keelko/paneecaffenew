@@ -377,7 +377,7 @@ const App: React.FC = () => {
       />
       <main>
         {!isSearchActive && <Hero />}
-        <div id="category-nav-container" className="sticky top-[calc(5rem+env(safe-area-inset-top))] md:top-[calc(7rem+env(safe-area-inset-top))] z-30 bg-brand-cream/90 backdrop-blur-sm shadow-sm border-b border-brand-red/10">
+        <div id="category-nav-container" className="sticky top-[calc(92px+env(safe-area-inset-top))] md:top-[calc(129px+env(safe-area-inset-top))] z-30 bg-brand-cream/90 backdrop-blur-sm shadow-sm border-b border-brand-red/10">
             <CategoryNav
                 categories={orderedCategories}
                 activeCategory={activeCategory}
@@ -402,7 +402,7 @@ const App: React.FC = () => {
                             key={category} 
                             id={category} 
                             ref={el => { sectionRefs.current[category] = el; }}
-                            className="scroll-mt-32 md:scroll-mt-48"
+                            className="scroll-mt-[148px] md:scroll-mt-[185px]"
                         >
                             <div className={isMonthlySpecial ? 'bg-white p-6 rounded-2xl shadow-xl border-2 border-brand-red/20 relative overflow-hidden' : ''}>
                                 <h2 className={`text-4xl font-bebas tracking-wide uppercase mb-6 border-b-2 pb-2 flex items-center gap-3 relative z-10 ${isMonthlySpecial ? 'text-brand-red border-brand-red/20' : 'text-brand-red border-brand-red/10'}`}>

@@ -63,7 +63,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                 <p className="text-gray-600 text-[14.5px]" dangerouslySetInnerHTML={{ __html: product.description }}></p>
             </div>
             <div className="text-right flex-shrink-0">
-                <p className="text-brand-red text-2xl font-bebas mb-2">
+                <p className="text-brand-red text-[25px] font-bebas mb-2">
                     €{product.price.toFixed(2)}
                 </p>
                 <button
@@ -158,7 +158,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                                 {isAdded ? 'AGGIUNTO!' : 'SOLO PANINO'}
                             </span>
                             {!isAdded && (
-                                <span className="text-brand-red font-bebas text-[19px] uppercase leading-none">€{product.price.toFixed(2)}</span>
+                                <span className="text-brand-red font-bebas text-[21px] uppercase leading-none">€{product.price.toFixed(2)}</span>
                             )}
                         </button>
 
@@ -168,7 +168,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                             className={`flex-1 flex flex-col items-center justify-start pt-2.5 pb-2 px-2 border rounded-md transition-colors ${isSpecial ? 'border-brand-red/30 hover:bg-brand-red/10 bg-white/50' : 'border-brand-red/20 hover:bg-brand-red/5 bg-gray-50'} disabled:opacity-50 disabled:cursor-not-allowed min-h-[78px]`}
                         >
                             <span className={`font-bebas text-lg uppercase leading-none mb-1 ${isSpecial ? 'text-brand-red' : 'text-brand-dark'}`}>MENÙ</span>
-                            <span className="text-brand-red font-bebas text-[19px] uppercase leading-none">€{product.menuPrice!.toFixed(2)}</span>
+                            <span className="text-brand-red font-bebas text-[21px] uppercase leading-none">€{product.menuPrice!.toFixed(2)}</span>
                             <span className={`text-[8px] leading-tight text-center mt-1 px-1 text-gray-500 uppercase font-medium whitespace-nowrap`}>Panino + patatine + bibita</span>
                         </button>
                     </div>
@@ -206,7 +206,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onViewD
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-brand-red text-3xl font-bebas">
+                                <p className="text-brand-red text-[32px] font-bebas">
                                     €{product.price.toFixed(2)}
                                 </p>
                             )}
