@@ -143,6 +143,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const [phoneNumber, setPhoneNumber] = useState('');
   const [timeSlot, setTimeSlot] = useState('asap');
   const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [showWhatsAppConfirmation, setShowWhatsAppConfirmation] = useState(false);
   
   const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlot[]>([]);
@@ -225,6 +226,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const handleGetLocation = () => {
     if (navigator.geolocation) {
       setIsLocating(true);
+      setLocationError(null);
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -234,7 +236,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
         },
         (error) => {
           console.error("Error getting location: ", error);
-          alert("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
+          setLocationError("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
           setIsLocating(false);
         },
         {
@@ -244,7 +246,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
         }
       );
     } else {
-      alert("La geolocalizzazione non è supportata da questo browser.");
+      setLocationError("La geolocalizzazione non è supportata da questo browser.");
     }
   };
 
@@ -405,7 +407,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const handleProceedToConfirmation = () => {
     const isNameValid = customerName.trim() !== '';
     const isPhoneValid = phoneNumber.trim() !== '';
-    const isAddressValid = deliveryType === 'pickup' || mapsLink !== '' || (street.trim() !== '' && city.trim() !== '');
+    const isAddressValid = deliveryType === 'pickup' || mapsLink !== '' || (street.trim() !== '' && city.trim() !== '' && houseNumber.trim() !== '');
 
     setNameError(!isNameValid);
     setPhoneError(!isPhoneValid);
@@ -517,10 +519,10 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Modalità di Ritiro</label>
                 <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-gray-100">
-                    <button onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                    <button type="button" onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                       <PickupIcon className="h-5 w-5"/> Ritiro in Sede
                     </button>
-                    <button onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                    <button type="button" onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
                       <DeliveryIcon className="h-5 w-5"/> Consegna (+€{DELIVERY_FEE.toFixed(2)})
                     </button>
                 </div>
@@ -626,12 +628,16 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                     isLocating={isLocating}
                     hasLocation={!!mapsLink}
                     showError={addressError}
+                    locationError={locationError}
                   />
                 </div>
               )}
         </div>
-        <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t border-brand-red/10 bg-white sticky bottom-0 z-10">
+        <div className="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t-4 border-brand-red/10 bg-gray-100 sticky bottom-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
              <div className="space-y-1 mb-4 text-lg">
+                <div className="flex justify-between items-center text-gray-600 text-sm uppercase tracking-wider font-bold mb-1">
+                    <span>Riepilogo Costi</span>
+                </div>
                 <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotale</span>
                     <span>€{baseTotalPrice.toFixed(2)}</span>
@@ -642,20 +648,21 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                     <span>€{DELIVERY_FEE.toFixed(2)}</span>
                 </div>
                 )}
-                <div className="flex justify-between items-center font-bold text-xl border-t border-brand-red/20 pt-2 mt-2 text-brand-dark">
+                <div className="flex justify-between items-center font-bold text-xl border-t-2 border-brand-red/20 pt-2 mt-2 text-brand-dark">
                     <span>Totale</span>
                     <span>€{finalTotalPrice.toFixed(2)}</span>
                 </div>
             </div>
             <div className="space-y-2">
                 <button
+                type="button"
                 onClick={handleProceedToConfirmation}
-                className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md hover:bg-green-600 transition-colors duration-300 flex items-center justify-center gap-2"
+                className="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md hover:bg-green-600 transition-colors duration-300 flex items-center justify-center gap-2 shadow-lg active:scale-95 transform"
                 >
                   <WhatsAppIcon className="h-6 w-6" />
                   <span>Invia Ordine su WhatsApp</span>
                 </button>
-                <button onClick={() => setStep(1)} className="w-full text-center text-gray-600 text-sm py-2 hover:text-brand-dark">
+                <button type="button" onClick={() => setStep(1)} className="w-full text-center text-gray-600 text-sm py-2 hover:text-brand-dark">
                     Torna al Riepilogo
                 </button>
             </div>

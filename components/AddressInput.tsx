@@ -14,10 +14,11 @@ interface AddressInputProps {
   isLocating: boolean;
   hasLocation: boolean;
   showError?: boolean;
+  locationError?: string | null;
 }
 
 const AddressInput: React.FC<AddressInputProps> = ({
-  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating, hasLocation, showError
+  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating, hasLocation, showError, locationError
 }) => {
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
   const [isSearchingStreet, setIsSearchingStreet] = useState(false);
@@ -75,6 +76,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
     <div className={`space-y-3 transition-all duration-300 relative ${showSuggestions && street.length >= 1 ? 'pb-64 z-30' : 'z-0'}`}>
       <div className="flex flex-col gap-2">
         <button 
+          type="button"
           onClick={onGetLocation} 
           disabled={isLocating} 
           className={`w-full p-3 ${hasLocation ? 'bg-green-600' : 'bg-brand-red'} text-white font-semibold rounded-md hover:opacity-90 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-all ${showError && !street && !houseNumber && !hasLocation ? 'animate-flash-error' : ''}`}
@@ -89,6 +91,9 @@ const AddressInput: React.FC<AddressInputProps> = ({
           )}
           {hasLocation ? 'Posizione GPS Acquisita' : 'Usa la mia posizione attuale'}
         </button>
+        {locationError && (
+          <p className="text-red-600 text-xs mt-1 text-center animate-shake">{locationError}</p>
+        )}
         <div className="flex items-center gap-2 text-sm text-gray-500 my-1">
             <div className="flex-1 border-b border-gray-200"></div>
             <span>oppure inserisci manualmente</span>
@@ -151,14 +156,14 @@ const AddressInput: React.FC<AddressInputProps> = ({
           )}
         </div>
         <div className="col-span-1">
-          <label htmlFor="houseNumber" className="block text-sm font-medium text-gray-600 mb-1">Civico <span className="text-[10px] opacity-70">(opzionale)</span></label>
+          <label htmlFor="houseNumber" className="block text-sm font-medium text-gray-600 mb-1">Civico</label>
           <input 
             id="houseNumber" 
             type="text" 
             value={houseNumber} 
             onChange={e => setHouseNumber(e.target.value)} 
-            className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none" 
-            placeholder="Es. 12 (consigliato)" 
+            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all appearance-none ${showError && !houseNumber ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
+            placeholder="Es. 12" 
           />
         </div>
       </div>
