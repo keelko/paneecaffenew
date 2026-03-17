@@ -225,6 +225,14 @@
             animation: fade-in 0.3s ease-in-out;
         }
 
+        @keyframes flash-error {
+            0%, 100% { border-color: rgba(168, 29, 29, 0.2); box-shadow: 0 0 0 rgba(168, 29, 29, 0); }
+            50% { border-color: rgba(168, 29, 29, 1); box-shadow: 0 0 15px rgba(168, 29, 29, 0.4); background-color: rgba(168, 29, 29, 0.05); }
+        }
+        .animate-flash-error {
+            animation: flash-error 0.8s ease-in-out 4;
+        }
+
         /* Flash opacity animation */
         @keyframes flash-opacity {
             0%, 100% { opacity: 0.2; }

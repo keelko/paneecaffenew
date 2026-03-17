@@ -149,6 +149,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const [isLoadingTimes, setIsLoadingTimes] = useState(true);
   const [nameError, setNameError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const [addressError, setAddressError] = useState(false);
   const [usingFallbackTimes, setUsingFallbackTimes] = useState(false);
 
 
@@ -405,16 +406,23 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
   const handleProceedToConfirmation = () => {
     const isNameValid = customerName.trim() !== '';
     const isPhoneValid = phoneNumber.trim() !== '';
+    const isAddressValid = deliveryType === 'pickup' || (street.trim() !== '' && houseNumber.trim() !== '' && city.trim() !== '');
 
     setNameError(!isNameValid);
     setPhoneError(!isPhoneValid);
+    setAddressError(!isAddressValid);
 
-    if (!isNameValid || !isPhoneValid) {
+    if (!isNameValid || !isPhoneValid || !isAddressValid) {
+        // Scroll to the first error
+        const scrollContainer = document.querySelector('.overflow-y-auto');
+        if (scrollContainer) {
+            if (!isNameValid || !isPhoneValid) {
+                scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (!isAddressValid) {
+                scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
+            }
+        }
         return;
-    }
-    if (deliveryType === 'delivery' && (!street.trim() || !houseNumber.trim() || !city.trim())) {
-      alert("Per favore, compila tutti i campi dell'indirizzo (Paese, Via e Civico) o usa la tua posizione attuale.");
-      return;
     }
     setShowWhatsAppConfirmation(true);
   };
@@ -431,6 +439,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
             setStep(1);
             setNameError(false);
             setPhoneError(false);
+            setAddressError(false);
             setPhoneNumber('');
             setShowWhatsAppConfirmation(false);
         }, 300);
@@ -592,13 +601,14 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                   <h3 className="text-lg font-bold text-brand-dark mb-3">Indirizzo di Consegna</h3>
                   <AddressInput 
                     city={city}
-                    setCity={setCity}
+                    setCity={(val) => { setCity(val); if(addressError) setAddressError(false); }}
                     street={street}
-                    setStreet={setStreet}
+                    setStreet={(val) => { setStreet(val); if(addressError) setAddressError(false); }}
                     houseNumber={houseNumber}
-                    setHouseNumber={setHouseNumber}
+                    setHouseNumber={(val) => { setHouseNumber(val); if(addressError) setAddressError(false); }}
                     onGetLocation={handleGetLocation}
                     isLocating={isLocating}
+                    showError={addressError}
                   />
                 </div>
               )}

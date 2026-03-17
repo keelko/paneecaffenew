@@ -11,10 +11,11 @@ interface AddressInputProps {
   setHouseNumber: (val: string) => void;
   onGetLocation: () => void;
   isLocating: boolean;
+  showError?: boolean;
 }
 
 const AddressInput: React.FC<AddressInputProps> = ({
-  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating
+  city, setCity, street, setStreet, houseNumber, setHouseNumber, onGetLocation, isLocating, showError
 }) => {
   const [streetSuggestions, setStreetSuggestions] = useState<string[]>([]);
   const [isSearchingStreet, setIsSearchingStreet] = useState(false);
@@ -69,15 +70,15 @@ const AddressInput: React.FC<AddressInputProps> = ({
   };
 
   return (
-    <div className={`space-y-3 transition-all duration-300 ${showSuggestions && street.length >= 1 ? 'pb-40' : ''}`}>
+    <div className={`space-y-3 transition-all duration-300 ${showSuggestions && street.length >= 1 ? 'pb-64' : ''}`}>
       <div className="flex flex-col gap-2">
         <button 
           onClick={onGetLocation} 
           disabled={isLocating} 
-          className="w-full p-3 bg-brand-red text-white font-semibold rounded-md hover:bg-red-700 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-colors"
+          className={`w-full p-3 bg-brand-red text-white font-semibold rounded-md hover:bg-red-700 disabled:bg-gray-500 flex items-center justify-center gap-2 transition-all ${showError && !street && !houseNumber ? 'animate-flash-error' : ''}`}
           aria-label="Rileva posizione GPS"
         >
-          {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className="h-5 w-5"/>}
+          {isLocating ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : <LocationMarkerIcon className={`h-5 w-5 ${showError && !street && !houseNumber ? 'animate-bounce' : ''}`}/>}
           Usa la mia posizione attuale
         </button>
         <div className="flex items-center gap-2 text-sm text-gray-500 my-1">
@@ -94,7 +95,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
           type="text" 
           value={city} 
           onChange={e => setCity(e.target.value)} 
-          className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none" 
+          className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !city ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
           placeholder="Es. Ariano Irpino" 
         />
       </div>
@@ -114,10 +115,10 @@ const AddressInput: React.FC<AddressInputProps> = ({
               setShowSuggestions(true);
               // Scroll into view with a small delay to account for keyboard appearance
               setTimeout(() => {
-                suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                suggestionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }, 300);
             }}
-            className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none" 
+            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !street ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
             placeholder="Es. Via Roma" 
             autoComplete="off"
           />
@@ -148,7 +149,7 @@ const AddressInput: React.FC<AddressInputProps> = ({
             type="text" 
             value={houseNumber} 
             onChange={e => setHouseNumber(e.target.value)} 
-            className="w-full bg-white text-brand-dark border border-brand-red/10 rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none" 
+            className={`w-full bg-white text-brand-dark border rounded-md p-2 focus:ring-2 focus:ring-brand-red outline-none transition-all ${showError && !houseNumber ? 'border-brand-red animate-flash-error' : 'border-brand-red/10'}`} 
             placeholder="Es. 12" 
           />
         </div>
