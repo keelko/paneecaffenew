@@ -280,7 +280,9 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
             return detail;
         }).join(' / ');
 
-        const fullAddress = `${street}, ${houseNumber}, ${city}${mapsLink ? `\nPosizione GPS: ${mapsLink}` : ''}`;
+        const addressText = `${street}, ${houseNumber}, ${city}`;
+        const finalMapsLink = mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}`;
+        const fullAddress = `${addressText}\nLink Maps: ${finalMapsLink}`;
         
         const payload = {
             customerName: customerName.trim(),
@@ -361,8 +363,9 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     message += `*TOTALE:* *€${finalTotalPrice.toFixed(2)}*\n\n`;
     
     if (deliveryType === 'delivery') {
-        const fullAddress = `${street}, ${houseNumber}, ${city}${mapsLink ? `\n📍 Posizione GPS: ${mapsLink}` : ''}`;
-        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${fullAddress}\n\n`;
+        const addressText = `${street}, ${houseNumber}, ${city}`;
+        const finalMapsLink = mapsLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}`;
+        message += `📍 *INDIRIZZO DI CONSEGNA:*\n${addressText}\n🔗 *Apri in Maps:* ${finalMapsLink}\n\n`;
     } else {
         message += `🏠 *INDIRIZZO DI RITIRO:*\n${RESTAURANT_ADDRESS}\n\n`;
     }
