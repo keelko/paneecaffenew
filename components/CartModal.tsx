@@ -227,27 +227,44 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
     if (navigator.geolocation) {
       setIsLocating(true);
       setLocationError(null);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const link = `https://www.google.com/maps?q=${latitude},${longitude}`;
-          setMapsLink(link);
-          setIsLocating(false);
-        },
-        (error) => {
-          console.error("Error getting location: ", error);
-          setLocationError("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
-          setIsLocating(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      );
+      try {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              const link = `https://www.google.com/maps?q=${latitude},${longitude}`;
+              setMapsLink(link);
+              setIsLocating(false);
+            } catch (e) {
+              console.error("Error processing position: ", e);
+              setLocationError("Errore nel processare la posizione.");
+              setIsLocating(false);
+            }
+          },
+          (error) => {
+            console.error("Error getting location: ", error);
+            setLocationError("Impossibile recuperare la posizione. Assicurati di aver dato i permessi.");
+            setIsLocating(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      } catch (e) {
+        console.error("Error starting geolocation: ", e);
+        setLocationError("Errore nell'avvio della geolocalizzazione.");
+        setIsLocating(false);
+      }
     } else {
       setLocationError("La geolocalizzazione non è supportata da questo browser.");
     }
+  };
+
+  const handleClearLocation = () => {
+    setMapsLink('');
+    setLocationError(null);
   };
 
   const logOrderToSheet = () => {
@@ -519,11 +536,19 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">Modalità di Ritiro</label>
                 <div className="grid grid-cols-2 gap-2 rounded-md p-1 bg-gray-100">
-                    <button type="button" onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
-                      <PickupIcon className="h-5 w-5"/> Ritiro in Sede
+                    <button type="button" onClick={() => setDeliveryType('pickup')} className={`w-full py-2 text-sm rounded transition-all flex flex-col items-center justify-center gap-0.5 ${deliveryType === 'pickup' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                      <div className="flex items-center gap-2">
+                        <PickupIcon className={`h-5 w-5 ${deliveryType === 'pickup' ? 'text-white' : 'text-brand-dark'}`}/> 
+                        <span>Ritiro in Sede</span>
+                      </div>
+                      <span className="text-[10.5px] opacity-0 select-none">Gratis</span>
                     </button>
-                    <button type="button" onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex items-center justify-center gap-2 ${deliveryType === 'delivery' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
-                      <DeliveryIcon className="h-5 w-5"/> Consegna (+€{DELIVERY_FEE.toFixed(2)})
+                    <button type="button" onClick={() => setDeliveryType('delivery')} className={`w-full py-2 text-sm rounded transition-all flex flex-col items-center justify-center gap-0.5 ${deliveryType === 'delivery' ? 'bg-brand-red text-white font-bold shadow-md' : 'text-brand-dark hover:bg-brand-red/5'}`}>
+                      <div className="flex items-center gap-2">
+                        <DeliveryIcon className={`h-5 w-5 ${deliveryType === 'delivery' ? 'text-white' : 'text-brand-dark'}`}/> 
+                        <span>Consegna</span>
+                      </div>
+                      <span className={`text-[10.5px] ${deliveryType === 'delivery' ? 'text-white/80' : 'text-gray-500'}`}>+€{DELIVERY_FEE.toFixed(2)}</span>
                     </button>
                 </div>
               </div>
@@ -600,23 +625,6 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
               {deliveryType === 'delivery' && (
                 <div className="pt-2 border-t border-brand-red/10">
                   <h3 className="text-lg font-bold text-brand-dark mb-3">Indirizzo di Consegna</h3>
-                  {mapsLink && (
-                    <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center gap-3 animate-pop">
-                      <div className="bg-green-500 rounded-full p-1">
-                        <CheckCircleIcon className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-grow">
-                        <p className="text-sm font-bold text-green-800">Posizione GPS acquisita!</p>
-                        <p className="text-xs text-green-700">Verrà inviato il link Google Maps nel messaggio.</p>
-                      </div>
-                      <button 
-                        onClick={() => setMapsLink('')}
-                        className="text-xs text-red-600 hover:underline font-medium"
-                      >
-                        Rimuovi
-                      </button>
-                    </div>
-                  )}
                   <AddressInput 
                     city={city}
                     setCity={(val) => { setCity(val); if(addressError) setAddressError(false); }}
@@ -625,6 +633,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, cartItems, onUpd
                     houseNumber={houseNumber}
                     setHouseNumber={(val) => { setHouseNumber(val); if(addressError) setAddressError(false); }}
                     onGetLocation={handleGetLocation}
+                    onClearLocation={handleClearLocation}
                     isLocating={isLocating}
                     hasLocation={!!mapsLink}
                     showError={addressError}

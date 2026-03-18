@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react';
 import { ProductCategory } from '../types';
 import AnimatedCalendarIcon from './icons/animated/AnimatedCalendarIcon';
 import SearchIcon from './icons/SearchIcon';
@@ -32,10 +32,10 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
         return categories;
     }, [categories]);
     
-    useEffect(() => {
+    const updateIndicator = () => {
         const activeButton = buttonRefs.current[activeCategory];
         
-        if (activeButton) {
+        if (activeButton && scrollContainerRef.current) {
             const { offsetLeft, offsetWidth } = activeButton;
             
             setIndicatorStyle({
@@ -43,28 +43,52 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                 width: offsetWidth,
                 opacity: 1,
             });
+        }
+    };
 
+    useLayoutEffect(() => {
+        updateIndicator();
+        
+        // Ensure it's correct after a small delay for fonts/layout to settle
+        const timer = setTimeout(updateIndicator, 100);
+
+        const observer = new ResizeObserver(updateIndicator);
+        if (scrollContainerRef.current) {
+            observer.observe(scrollContainerRef.current);
+        }
+
+        return () => {
+            clearTimeout(timer);
+            observer.disconnect();
+        };
+    }, [activeCategory, categories]);
+
+    useEffect(() => {
+        const activeButton = buttonRefs.current[activeCategory];
+        if (activeButton) {
             activeButton.scrollIntoView({
-                behavior: 'auto',
+                behavior: 'smooth',
                 block: 'nearest',
                 inline: 'center',
             });
         }
-    }, [activeCategory, categories]);
+    }, [activeCategory]);
 
 
     return (
-        <nav className="">
+        <nav className="w-full">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between">
                     <div 
                         ref={scrollContainerRef}
-                        className="relative flex space-x-1 sm:space-x-4 overflow-x-auto py-3 scrollbar-hide"
+                        className="relative flex gap-1 sm:gap-4 overflow-x-auto py-3 scrollbar-hide no-scrollbar"
                     >
                         <div 
-                            className="absolute bg-brand-red rounded-full transition-all duration-300 ease-in-out"
+                            className="absolute bg-brand-red rounded-full transition-all duration-300 ease-in-out pointer-events-none"
                             style={{
-                                ...indicatorStyle,
+                                left: `${indicatorStyle.left}px`,
+                                width: `${indicatorStyle.width}px`,
+                                opacity: indicatorStyle.opacity,
                                 top: '0.375rem',
                                 bottom: '0.375rem',
                                 height: 'auto'
@@ -82,7 +106,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                                     key={category}
                                     ref={el => { buttonRefs.current[category] = el; }}
                                     onClick={() => onSelectCategory(category)}
-                                    className="relative px-3 sm:px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 flex items-center gap-2 z-10"
+                                    className="relative px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 flex items-center gap-2 z-10 flex-shrink-0"
                                 >
                                     {isMonthlySpecial && <AnimatedCalendarIcon className={`h-4 w-4 ${textClass} transition-colors duration-300`} />}
                                     <span className={`${textClass} transition-colors duration-300`}>{CATEGORY_LABELS[category] || category}</span>
@@ -91,7 +115,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({ categories, activeCategory, o
                         })}
                          <button
                             onClick={() => onSelectCategory('contatti')}
-                            className="relative px-3 sm:px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 text-brand-red hover:text-brand-red/90 z-10"
+                            className="relative px-4 py-2 text-lg sm:text-xl font-bebas tracking-wide uppercase rounded-full whitespace-nowrap transition-colors duration-300 text-brand-red hover:text-brand-red/90 z-10 flex-shrink-0"
                         >
                             Contatti
                         </button>
