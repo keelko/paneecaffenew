@@ -1,7 +1,5 @@
 {
-  "name": "Copy of Pane e Caffè OLD new grafica 17 marzo 1",
-  "description": "versione novembre da riprendere per aggiornarlo nel 2026, introduzione terzo tasto personalizza",
-  "requestFramePermissions": [
-    "geolocation"
-  ]
+  "name": "Remix: Remix: Copy of TuttoXAndroid Pro - Versione 10 marzo",
+  "description": "Portale editoriale tech moderno per TuttoXAndroid. UI pulita, news categorizzate, offerte e layout responsive ispirato ai grandi portali tech internazionali.",
+  "requestFramePermissions": []
 }
