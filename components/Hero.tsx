@@ -25,7 +25,7 @@ const Hero: React.FC = () => {
       currentMedia = currentMedia.map((item, index) => {
         // Sostituisci la prima immagine (indice 1 nel fullMedia) solo su mobile
         if (index === 1 && item.type === 'image') {
-          return { ...item, url: 'https://i.imgur.com/HIa1HHC.png' };
+          return { ...item, url: 'https://i.imgur.com/cSKbUTZ.png' };
         }
         // Sostituisci la seconda immagine (indice 2 nel fullMedia) solo su mobile
         if (index === 2 && item.type === 'image') {
