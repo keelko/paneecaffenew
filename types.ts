@@ -1,36 +1,55 @@
+export type ProductCategory = 'panini-del-mese' | 'hamburger' | 'american-sandwich' | 'sandwich-maiale' | 'sandwich-pollo' | 'veggy' | 'kids-junior' | 'chips' | 'starter' | 'box' | 'dolci' | 'salse' | 'drink';
 
-export type Category = 'Tutti' | 'News' | 'Recensioni' | 'Offerte' | 'Guide' | 'Tutorial' | 'App & Giochi' | 'Smartphone' | 'Wearable' | 'Modding' | 'offerteimperdibili' | 'App';
-
-export interface DealData {
-  oldPrice: string;
-  newPrice: string;
-  link: string;
+export interface ProductVariant {
+  name: string;
+  price: number;
 }
 
-export interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  category: Category;
-  tags: string[]; // Added: List of all categories/labels for filtering
-  imageUrl: string;
-  author: string;
-  authorImageUrl?: string;
-  date: string;
-  url?: string;
-  featured?: boolean;
-  type?: 'standard' | 'mini' | 'hero' | 'horizontal';
-  dealData?: DealData | null;
+export interface Product {
+  id: number;
+  name:string;
+  price: number;
+  menuPrice?: number;
+  description: string;
+  image: string;
+  category: ProductCategory;
+  ingredients?: string[];
+  isDrink?: boolean;
+  galleryImages?: string[];
+  imagePosition?: string;
+  imageFit?: 'cover' | 'contain';
+  variants?: ProductVariant[];
+  availableDays?: number[]; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  extras?: Extra[];
 }
 
-export interface Deal {
-  id: string;
-  product: string;
-  oldPrice: string;
-  newPrice: string;
-  saveAmount: string;
-  link: string;
-  imageUrl: string;
-  brandColor?: string;
+export type CartItemVariant = 'panino' | 'menu';
+
+export interface Extra {
+  name: string;
+  price: number;
+}
+
+export interface SelectedExtra {
+  name: string;
+  price: number;
+}
+
+export interface CartItem {
+  id: string; // Unique identifier for each cart item instance
+  product: Product;
+  quantity: number;
+  notes: string;
+  variant: CartItemVariant;
+  
+  // Customizations
+  removedIngredients: string[];
+  addedExtras: SelectedExtra[];
+  
+  // For 'menu' variant
+  selectedDrink?: Product;
+  selectedFrySauces?: string[];
+
+  // Calculated price for this specific configured item
+  finalPrice: number;
 }

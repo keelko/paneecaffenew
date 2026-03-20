@@ -8,9 +8,33 @@ const fullMedia = [
 
 const Hero: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const touchStartRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const media = useMemo(() => {
+    let currentMedia = [...fullMedia];
+    
+    if (isMobile) {
+      currentMedia = currentMedia.map((item, index) => {
+        // Sostituisci la prima immagine (indice 1 nel fullMedia) solo su mobile
+        if (index === 1 && item.type === 'image') {
+          return { ...item, url: 'https://i.imgur.com/HIa1HHC.png' };
+        }
+        // Sostituisci la seconda immagine (indice 2 nel fullMedia) solo su mobile
+        if (index === 2 && item.type === 'image') {
+          return { ...item, url: 'https://i.imgur.com/FlVrm73.png' };
+        }
+        return item;
+      });
+    }
+
     // Controlla se l'API Network Information è disponibile
     if ('connection' in navigator) {
       const connection = (navigator as any).connection;
@@ -21,12 +45,12 @@ const Hero: React.FC = () => {
 
       if (isSlowConnection) {
         // Se la connessione è lenta, filtra il video
-        return fullMedia.filter(item => item.type !== 'video');
+        return currentMedia.filter(item => item.type !== 'video');
       }
     }
     // Altrimenti, restituisce tutti i media
-    return fullMedia;
-  }, []);
+    return currentMedia;
+  }, [isMobile]);
 
 
   const goToNext = useCallback(() => {
@@ -79,15 +103,17 @@ const Hero: React.FC = () => {
         const isActive = currentIndex === index;
         if (item.type === 'video') {
             return (
-                <video
-                    key={index}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100' : 'opacity-0'}`}
-                    src={item.url}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                />
+                <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+                    <video
+                        className="w-full h-full object-cover"
+                        src={item.url}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                    />
+                    <div className="absolute inset-0 bg-black/50"></div>
+                </div>
             );
         }
         return (
@@ -101,40 +127,6 @@ const Hero: React.FC = () => {
             />
         );
       })}
-      <div className="absolute inset-0 bg-black/50"></div>
-      
-      {/* Text Overlay for the first slide */}
-      <div className={`absolute inset-0 flex flex-col items-center justify-center text-center text-brand-cream pointer-events-none transition-opacity duration-1000 ease-in-out ${currentIndex === 0 && media[0]?.type === 'video' ? 'opacity-100' : 'opacity-0'}`}>
-        <div>
-            <h1 className="font-brand text-4xl md:text-7xl tracking-wider animate-hero-title-fade" style={{ textShadow: '0 3px 6px rgba(0,0,0,0.6)' }}>
-                Pane & Caffè
-            </h1>
-            <p className="font-bold tracking-[0.2em] uppercase text-xs md:text-xl mt-2 animate-hero-subtitle-fade" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                Laboratorio di Hamburger
-            </p>
-            <div className="bg-brand-red h-1 w-2/5 mt-4 mx-auto origin-left animate-hero-bar-animation"></div>
-        </div>
-      </div>
-      
-      {/* Text Overlay for the second slide */}
-      <div className={`absolute inset-0 flex flex-col items-center justify-center text-center text-brand-cream pointer-events-none transition-opacity duration-1000 ease-in-out ${currentIndex === (media.some(m => m.type === 'video') ? 1 : 0) ? 'opacity-100' : 'opacity-0'}`}>
-          <div>
-              <div className="bg-brand-red h-1 w-2/5 mb-4 mx-auto origin-left animate-hero-bar-animation" style={{ animationDuration: '11s' }}></div>
-              <h2 
-                className="font-brand text-3xl md:text-6xl tracking-wider shine-effect-once opacity-75" 
-                style={{ textShadow: '0 3px 6px rgba(0,0,0,0.6)' }}
-              >
-                Vieni a scoprire i nostri panini
-              </h2>
-              <p 
-                className="font-semibold tracking-[0.1em] uppercase text-xs md:text-lg mt-4 animate-pulse-slow opacity-75"
-                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
-              >
-                Creati con passione!
-              </p>
-          </div>
-      </div>
-      
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
         {media.map((_, index) => (
             <button
